@@ -43,12 +43,36 @@ export function Organograma({ data, onChange, mode = 'edit' }: OrganogramProps) 
     onChange?.({ ...data, ...partial })
   }, [data, onChange])
 
-  function getSVGY(e: React.MouseEvent) {
+  function getSVGY(e: React.MouseEvent | React.TouchEvent) {
     const svg = svgRef.current
     if (!svg) return 0
     const rect = svg.getBoundingClientRect()
     const scaleY = svgH / rect.height
-    return (e.clientY - rect.top) * scaleY
+    const clientY = 'touches' in e
+      ? e.touches[0].clientY
+      : (e as React.MouseEvent).clientY
+    return (clientY - rect.top) * scaleY
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (!dragging) return
+    e.preventDefault()
+    const y = getSVGY(e)
+    const newVal = bpFromY(y)
+
+    if (dragging.type === 'systolic') {
+      const newBP = [...data.bp]
+      newBP[dragging.idx] = { ...newBP[dragging.idx], systolic: Math.max(newBP[dragging.idx].diastolic + 10, newVal) }
+      update({ bp: newBP })
+    } else if (dragging.type === 'diastolic') {
+      const newBP = [...data.bp]
+      newBP[dragging.idx] = { ...newBP[dragging.idx], diastolic: Math.min(newBP[dragging.idx].systolic - 10, newVal) }
+      update({ bp: newBP })
+    } else if (dragging.type === 'hr') {
+      const newHR = [...data.hr]
+      newHR[dragging.idx] = { ...newHR[dragging.idx], value: Math.max(20, Math.min(220, newVal)) }
+      update({ hr: newHR })
+    }
   }
 
   function startDrag(type: 'systolic' | 'diastolic' | 'hr', idx: number) {
@@ -186,8 +210,9 @@ export function Organograma({ data, onChange, mode = 'edit' }: OrganogramProps) 
 
       <div className="overflow-x-auto">
         <svg ref={svgRef} width={svgW} height={svgH}
-          style={{ fontFamily: 'Arial, sans-serif', display: 'block', cursor: dragging ? 'ns-resize' : 'default' }}
-          onMouseMove={onMouseMove} onMouseUp={stopDrag} onMouseLeave={stopDrag}>
+          style={{ fontFamily: 'Arial, sans-serif', display: 'block', cursor: dragging ? 'ns-resize' : 'default', touchAction: 'none' }}
+          onMouseMove={onMouseMove} onMouseUp={stopDrag} onMouseLeave={stopDrag}
+          onTouchMove={onTouchMove} onTouchEnd={stopDrag}>
 
           <defs>
             <clipPath id="clip-end">
@@ -280,7 +305,9 @@ export function Organograma({ data, onChange, mode = 'edit' }: OrganogramProps) 
                     fill={isDragSys ? '#1A56A0' : 'none'}
                     stroke={isDragSys ? '#1A56A0' : '#1E293B'} strokeWidth={1.5}
                     style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }}
-                    onMouseDown={() => startDrag('systolic', i)} />
+                    onMouseDown={() => startDrag('systolic', i)}
+                    onTouchStart={() => startDrag('systolic', i)} />
+
                   <text x={x + half + 3} y={sy + 3} fontSize={7} fill="#475569">{pt.systolic}</text>
                   {/* Diastólica △ */}
                   <polygon
@@ -288,7 +315,8 @@ export function Organograma({ data, onChange, mode = 'edit' }: OrganogramProps) 
                     fill={isDragDia ? '#1A56A0' : 'none'}
                     stroke={isDragDia ? '#1A56A0' : '#1E293B'} strokeWidth={1.5}
                     style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }}
-                    onMouseDown={() => startDrag('diastolic', i)} />
+                    onMouseDown={() => startDrag('diastolic', i)}
+                    onTouchStart={() => startDrag('diastolic', i)} />
                   <text x={x + half + 3} y={dy + 3} fontSize={7} fill="#475569">{pt.diastolic}</text>
                 </g>
               )
@@ -304,7 +332,8 @@ export function Organograma({ data, onChange, mode = 'edit' }: OrganogramProps) 
                   <circle cx={x} cy={y} r={isDrag ? 6 : 4}
                     fill={isDrag ? '#1A56A0' : '#1E293B'} stroke="white" strokeWidth={1.5}
                     style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }}
-                    onMouseDown={() => startDrag('hr', i)} />
+                    onMouseDown={() => startDrag('hr', i)}
+                    onTouchStart={() => startDrag('hr', i)} />
                   <text x={x + 8} y={y + 3} fontSize={7} fill="#64748B">{pt.value}</text>
                 </g>
               )
