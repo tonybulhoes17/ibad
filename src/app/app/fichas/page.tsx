@@ -35,14 +35,14 @@ export default function FichasPage() {
   }
 
   async function togglePagamento(id: string, isPaid: boolean) {
-    setUpdatingId(id)
-    await supabase
-      .from('anesthesia_records')
-      .update({ is_paid: !isPaid, has_glosa: false })
-      .eq('id', id)
-    await refetch()
-    setUpdatingId(null)
-  }
+  setUpdatingId(id)
+  await (supabase
+    .from('anesthesia_records') as any)
+    .update({ is_paid: !isPaid, has_glosa: false })
+    .eq('id', id)
+  await refetch()
+  setUpdatingId(null)
+}
 
   const activeFiltersCount = Object.values(filters).filter(Boolean).length
 
