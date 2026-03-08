@@ -48,8 +48,8 @@ export default function OnboardingPage() {
     if (!form.crm || !userId) return
     setSaving(true)
     setError(null)
-    const { error } = await supabase
-      .from('profiles')
+    const { error } = await (supabase
+      .from('profiles') as any)
       .update({ crm: form.crm, rqe: form.rqe || null })
       .eq('id', userId)
     if (error) {
@@ -66,8 +66,8 @@ export default function OnboardingPage() {
     setSaving(true)
     setError(null)
     if (institution.name) {
-      const { error } = await supabase
-        .from('institutions')
+      const { error } = await (supabase
+        .from('institutions') as any)
         .insert({ name: institution.name, city: institution.city || null, user_id: userId })
       if (error) {
         setError('Erro ao salvar instituição. Tente novamente.')
@@ -82,15 +82,14 @@ export default function OnboardingPage() {
   async function handleFinish() {
     if (!userId) return
     setSaving(true)
-    await supabase
-      .from('profiles')
+    await (supabase
+      .from('profiles') as any)
       .update({ onboarding_completed: true })
       .eq('id', userId)
     setSaving(false)
     router.push('/app/dashboard')
     router.refresh()
   }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
