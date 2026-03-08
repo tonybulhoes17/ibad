@@ -16,8 +16,9 @@ export default async function ViewFichaPage({ params }: { params: { id: string }
 
   if (!record) notFound()
 
-  const anesthesiaLabel = ANESTHESIA_TYPES.find(t => t.value === record.anesthesia_type)?.label
-  const modalityLabel = MODALITIES.find(m => m.value === record.modality)?.label
+  const r = record as any
+  const anesthesiaLabel = ANESTHESIA_TYPES.find(t => t.value === r.anesthesia_type)?.label
+  const modalityLabel = MODALITIES.find(m => m.value === r.modality)?.label
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto">
@@ -57,13 +58,13 @@ export default async function ViewFichaPage({ params }: { params: { id: string }
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
           {[
             ['Instituição', (record as any).institutions?.name ?? '—'],
-            ['Cirurgião', record.surgeon ?? '—'],
-            ['Tipo de Anestesia', anesthesiaLabel ?? record.anesthesia_type],
+            ['Cirurgião', r.surgeon ?? '—'],
+            ['Tipo de Anestesia', anesthesiaLabel ?? r.anesthesia_type],
             ['Modalidade', modalityLabel ?? '—'],
-            ['Hora Início', formatTime(record.start_time)],
-            ['Hora Fim', formatTime(record.end_time)],
-            ['CPF', record.patient_cpf ?? '—'],
-            ['Sexo / Idade', `${record.patient_sex ?? '—'} / ${record.patient_age ?? '—'} anos`],
+            ['Hora Início', formatTime(r.start_time)],
+            ['Hora Fim', formatTime(r.end_time)],
+            ['CPF', r.patient_cpf ?? '—'],
+            ['Sexo / Idade', `${r.patient_sex ?? '—'} / ${r.patient_age ?? '—'} anos`],
           ].map(([k, v]) => (
             <div key={k}>
               <p className="text-xs text-slate-400 mb-0.5">{k}</p>
