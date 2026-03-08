@@ -33,8 +33,9 @@ export default function OnboardingPage() {
           .select('crm, rqe')
           .eq('id', session.user.id)
           .single()
-        if (profile?.crm && profile.crm !== 'PENDENTE') {
-          setForm({ crm: profile.crm, rqe: profile.rqe ?? '' })
+        const p = profile as any
+        if (p?.crm && p.crm !== 'PENDENTE') {
+          setForm({ crm: p.crm, rqe: p.rqe ?? '' })
         }
       } else {
         router.push('/login')
