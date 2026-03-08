@@ -304,9 +304,14 @@ export function Organograma({ data, onChange, mode = 'edit' }: OrganogramProps) 
                     points={`${x},${sy + half * 1.5} ${x - half},${sy} ${x + half},${sy}`}
                     fill={isDragSys ? '#1A56A0' : 'none'}
                     stroke={isDragSys ? '#1A56A0' : '#1E293B'} strokeWidth={1.5}
-                    style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }}
-                    onMouseDown={() => startDrag('systolic', i)}
-                    onTouchStart={() => startDrag('systolic', i)} />
+                    style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }} />
+                  {mode === 'edit' && (
+                    <rect x={x - 18} y={sy - 18} width={36} height={36}
+                      fill="transparent"
+                      style={{ cursor: 'ns-resize' }}
+                      onMouseDown={() => startDrag('systolic', i)}
+                      onTouchStart={() => startDrag('systolic', i)} />
+                  )}
 
                   <text x={x + half + 3} y={sy + 3} fontSize={7} fill="#475569">{pt.systolic}</text>
                   {/* Diastólica △ */}
@@ -314,9 +319,14 @@ export function Organograma({ data, onChange, mode = 'edit' }: OrganogramProps) 
                     points={`${x},${dy - half * 1.5} ${x - half},${dy} ${x + half},${dy}`}
                     fill={isDragDia ? '#1A56A0' : 'none'}
                     stroke={isDragDia ? '#1A56A0' : '#1E293B'} strokeWidth={1.5}
-                    style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }}
-                    onMouseDown={() => startDrag('diastolic', i)}
-                    onTouchStart={() => startDrag('diastolic', i)} />
+                    style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }} />
+                  {mode === 'edit' && (
+                    <rect x={x - 18} y={dy - 18} width={36} height={36}
+                      fill="transparent"
+                      style={{ cursor: 'ns-resize' }}
+                      onMouseDown={() => startDrag('diastolic', i)}
+                      onTouchStart={() => startDrag('diastolic', i)} />
+                  )}
                   <text x={x + half + 3} y={dy + 3} fontSize={7} fill="#475569">{pt.diastolic}</text>
                 </g>
               )
@@ -331,9 +341,14 @@ export function Organograma({ data, onChange, mode = 'edit' }: OrganogramProps) 
                 <g key={`hr${i}`}>
                   <circle cx={x} cy={y} r={isDrag ? 6 : 4}
                     fill={isDrag ? '#1A56A0' : '#1E293B'} stroke="white" strokeWidth={1.5}
-                    style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }}
-                    onMouseDown={() => startDrag('hr', i)}
-                    onTouchStart={() => startDrag('hr', i)} />
+                    style={{ cursor: mode === 'edit' ? 'ns-resize' : 'default' }} />
+                  {mode === 'edit' && (
+                    <rect x={x - 18} y={y - 18} width={36} height={36}
+                      fill="transparent"
+                      style={{ cursor: 'ns-resize' }}
+                      onMouseDown={() => startDrag('hr', i)}
+                      onTouchStart={() => startDrag('hr', i)} />
+                  )}
                   <text x={x + 8} y={y + 3} fontSize={7} fill="#64748B">{pt.value}</text>
                 </g>
               )
