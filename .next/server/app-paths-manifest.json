@@ -1,0 +1,10 @@
+{
+  "/not-found": "app/not-found.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/auth/register/page": "app/auth/register/page.js",
+  "/onboarding/page": "app/onboarding/page.js",
+  "/forgot-password/page": "app/forgot-password/page.js",
+  "/auth/forgot-password/page": "app/auth/forgot-password/page.js",
+  "/login/page": "app/login/page.js",
+  "/app/dashboard/page": "app/app/dashboard/page.js"
+}
