@@ -26,7 +26,7 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
     const modalityLabel = MODALITIES.find(m => m.value === record.modality)?.label ?? record.modality
 
     return (
-      <div ref={ref} className="a4-preview print-only" style={{ fontFamily: 'Arial, sans-serif' }}>
+      <div ref={ref} className="a4-preview print-only" style={{ fontFamily: 'Arial, sans-serif', width: '105%' }}>
 
         {/* ── CABEÇALHO */}
         <div style={{
@@ -150,25 +150,25 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
         </div>
 
         {/* ── ASSINATURA */}
-        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12, textAlign: 'right' }}>
+        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 4, textAlign: 'right' }}>
           <div style={{ display: 'inline-block', textAlign: 'center', minWidth: 200 }}>
             {record.profiles?.signature_url && (
               <img
                 src={record.profiles.signature_url}
                 alt="Assinatura"
-                style={{ maxHeight: 50, maxWidth: 180, display: 'block', margin: '0 auto 4px' }}
+                style={{ maxHeight: 36, maxWidth: 160, display: 'block', margin: '0 auto 2px' }}
               />
             )}
-            <div style={{ borderTop: '1px solid #1E293B', paddingTop: 4, marginTop: 4 }}>
-              <div style={{ fontSize: 10, fontWeight: 'bold', color: '#1E293B' }}>
+            <div style={{ borderTop: '1px solid #1E293B', paddingTop: 2, marginTop: 2 }}>
+              <div style={{ fontSize: 9.5, fontWeight: 'bold', color: '#1E293B', lineHeight: 1.2 }}>
                 {record.profiles?.full_name ?? '—'}
               </div>
-              <div style={{ fontSize: 9, color: '#64748B' }}>Anestesiologista</div>
-              <div style={{ fontSize: 9, color: '#64748B', fontFamily: 'monospace' }}>
+              <div style={{ fontSize: 8, color: '#64748B', lineHeight: 1.2 }}>Anestesiologista</div>
+              <div style={{ fontSize: 8, color: '#64748B', fontFamily: 'monospace', lineHeight: 1.2 }}>
                 CRM: {record.profiles?.crm ?? '—'}
               </div>
               {record.profiles?.rqe && (
-                <div style={{ fontSize: 9, color: '#64748B', fontFamily: 'monospace' }}>
+                <div style={{ fontSize: 8, color: '#64748B', fontFamily: 'monospace', lineHeight: 1.2 }}>
                   RQE: {record.profiles.rqe}
                 </div>
               )}
