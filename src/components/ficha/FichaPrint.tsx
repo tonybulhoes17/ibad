@@ -113,7 +113,7 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
             ORGANOGRAMA ANESTÉSICO
           </div>
           {record.timeline_data && (
-            <div style={{ position: 'relative', height: '340px' }}>
+            <div style={{ position: 'relative', height: '390px' }}>
               <div style={{ transform: 'scale(0.78)', transformOrigin: 'top left', width: '128%', position: 'absolute', top: 0, left: 0 }}>
                 <Organograma data={record.timeline_data} mode="print" />
               </div>
