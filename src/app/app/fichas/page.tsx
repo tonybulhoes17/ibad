@@ -20,6 +20,7 @@ export default function FichasPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [search, setSearch] = useState('')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [editingValue, setEditingValue] = useState<{ id: string; value: string } | null>(null)
   const { fichas, loading, refetch } = useFichas({ ...filters, patient_name: search || undefined })
   const { remove } = useSaveFicha()
   const { instituicoes } = useInstituicoes()
@@ -35,14 +36,25 @@ export default function FichasPage() {
   }
 
   async function togglePagamento(id: string, isPaid: boolean) {
-  setUpdatingId(id)
-  await (supabase
-    .from('anesthesia_records') as any)
-    .update({ is_paid: !isPaid, has_glosa: false })
-    .eq('id', id)
-  await refetch()
-  setUpdatingId(null)
-}
+    setUpdatingId(id)
+    await (supabase.from('anesthesia_records') as any)
+      .update({ is_paid: !isPaid, has_glosa: false })
+      .eq('id', id)
+    await refetch()
+    setUpdatingId(null)
+  }
+
+  async function saveValue(id: string) {
+    if (!editingValue) return
+    const numVal = parseFloat(editingValue.value.replace(',', '.'))
+    if (!isNaN(numVal)) {
+      await (supabase.from('anesthesia_records') as any)
+        .update({ surgery_value: numVal })
+        .eq('id', id)
+      await refetch()
+    }
+    setEditingValue(null)
+  }
 
   const activeFiltersCount = Object.values(filters).filter(Boolean).length
 
@@ -165,7 +177,7 @@ export default function FichasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {['Data', 'Paciente', 'Cirurgia', 'Instituição', 'Anestesia', 'Valor', 'Status', 'Ações'].map(h => (
+                  {['Data', 'Paciente', 'Cirurgia', 'Instituição', 'Plano', 'Anestesia', 'Valor', 'Status', 'Ações'].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -173,6 +185,7 @@ export default function FichasPage() {
               <tbody className="divide-y divide-slate-50">
                 {fichas.map(ficha => {
                   const isUpdating = updatingId === ficha.id
+                  const isEditingVal = editingValue?.id === ficha.id
                   return (
                     <tr key={ficha.id} className="hover:bg-slate-50 transition-colors group">
                       <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">
@@ -182,22 +195,47 @@ export default function FichasPage() {
                         <div className="font-medium text-slate-900">{ficha.patient_name}</div>
                         {ficha.patient_cpf && <div className="text-xs text-slate-400 font-mono">{ficha.patient_cpf}</div>}
                       </td>
-                      <td className="px-4 py-3 text-slate-600 max-w-[180px] truncate">{ficha.surgery_name}</td>
+                      <td className="px-4 py-3 text-slate-600 max-w-[160px] truncate">{ficha.surgery_name}</td>
                       <td className="px-4 py-3 text-slate-500 text-xs">{(ficha as any).institutions?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-slate-500 text-xs">{(ficha as any).insurance_plans?.name ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className="badge-neutral">
                           {ANESTHESIA_TYPES.find(t => t.value === ficha.anesthesia_type)?.label ?? ficha.anesthesia_type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-700">{formatCurrency(ficha.surgery_value)}</td>
 
-                      {/* STATUS — botão de toggle rápido */}
+                      {/* VALOR — editável inline */}
+                      <td className="px-4 py-3">
+                        {isEditingVal ? (
+                          <input
+                            type="text"
+                            className="w-24 text-xs font-mono border border-primary-400 rounded px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-400"
+                            value={editingValue.value}
+                            onChange={e => setEditingValue({ id: ficha.id, value: e.target.value })}
+                            onBlur={() => saveValue(ficha.id)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') saveValue(ficha.id)
+                              if (e.key === 'Escape') setEditingValue(null)
+                            }}
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="font-mono text-xs text-slate-700 cursor-pointer hover:text-primary-600 hover:underline"
+                            title="Clique para editar"
+                            onClick={() => setEditingValue({ id: ficha.id, value: String(ficha.surgery_value ?? '') })}
+                          >
+                            {formatCurrency(ficha.surgery_value)}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* STATUS */}
                       <td className="px-4 py-3">
                         <button
                           onClick={() => togglePagamento(ficha.id, ficha.is_paid)}
                           disabled={isUpdating}
                           title={ficha.is_paid ? 'Clique para marcar como Pendente' : 'Clique para marcar como Pago'}
-                          className="flex items-center gap-1.5 group/btn"
                         >
                           {isUpdating ? (
                             <span className="text-xs text-slate-400 animate-pulse">...</span>
@@ -248,6 +286,7 @@ export default function FichasPage() {
                   <div>
                     <p className="font-semibold text-slate-900">{ficha.patient_name}</p>
                     <p className="text-xs text-slate-500">{ficha.surgery_name}</p>
+                    <p className="text-xs text-slate-400">{(ficha as any).insurance_plans?.name ?? ''}</p>
                   </div>
                   <button
                     onClick={() => togglePagamento(ficha.id, ficha.is_paid)}
