@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createPublicClient } from '@/lib/supabase/public'
 
 type FormData = {
   full_name: string
@@ -44,9 +44,9 @@ const initial: FormData = {
   dental_prosthesis: null, cosmetic_items: null, uses_monjaro: null,
 }
 
-function YesNo({ label, hint, value, onChange, name }: {
+function YesNo({ label, hint, value, onChange }: {
   label: string; hint?: string; value: boolean | null
-  onChange: (v: boolean) => void; name: string
+  onChange: (v: boolean) => void
 }) {
   return (
     <div className="mb-5">
@@ -73,7 +73,6 @@ export default function PreConsultaPage() {
   const [saving, setSaving] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const supabase = createClient()
 
   function set(key: keyof FormData, value: any) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -87,6 +86,7 @@ export default function PreConsultaPage() {
     }
     setSaving(true)
     setError(null)
+    const supabase = createPublicClient()
     const { error: err } = await supabase.from('pre_consultations').insert({
       full_name: form.full_name,
       cpf: form.cpf || null,
@@ -175,7 +175,6 @@ export default function PreConsultaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 p-4 pt-8 pb-16">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-3">
             <div className="w-10 h-10 bg-blue-700 rounded-xl flex items-center justify-center">
@@ -188,18 +187,14 @@ export default function PreConsultaPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* DADOS PESSOAIS */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-base font-bold text-blue-700 uppercase tracking-wide mb-5">Dados Pessoais</h2>
-
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1">Nome Completo <span className="text-red-500">*</span></label>
               <input type="text" value={form.full_name} onChange={e => set('full_name', e.target.value)}
                 placeholder="Seu nome completo"
                 className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
-
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">CPF</label>
@@ -214,7 +209,6 @@ export default function PreConsultaPage() {
                   className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Cidade</label>
@@ -229,7 +223,6 @@ export default function PreConsultaPage() {
                   className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Peso (kg)</label>
@@ -246,31 +239,26 @@ export default function PreConsultaPage() {
             </div>
           </div>
 
-          {/* DADOS DO PROCEDIMENTO */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-base font-bold text-blue-700 uppercase tracking-wide mb-5">Dados do Procedimento</h2>
-
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1">Qual cirurgia ou procedimento vai realizar?</label>
               <input type="text" value={form.procedure_name} onChange={e => set('procedure_name', e.target.value)}
-                placeholder="Ex: Colecistectomia, Catarата..."
+                placeholder="Ex: Colecistectomia, Catarata..."
                 className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
-
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1">Nome do cirurgião</label>
               <input type="text" value={form.surgeon} onChange={e => set('surgeon', e.target.value)}
                 placeholder="Nome do médico que vai operar"
                 className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
-
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1">Hospital ou clínica onde será realizada a cirurgia</label>
               <input type="text" value={form.surgery_hospital} onChange={e => set('surgery_hospital', e.target.value)}
                 placeholder="Nome do local"
                 className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Data prevista da cirurgia</label>
               <input type="date" value={form.procedure_date} onChange={e => set('procedure_date', e.target.value)}
@@ -278,13 +266,11 @@ export default function PreConsultaPage() {
             </div>
           </div>
 
-          {/* HISTÓRICO */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-base font-bold text-blue-700 uppercase tracking-wide mb-5">Histórico de Saúde</h2>
-
             <YesNo label="Já fez alguma cirurgia antes?"
               hint="Inclui qualquer tipo de operação, mesmo que pequena"
-              value={form.previous_surgeries} name="previous_surgeries"
+              value={form.previous_surgeries}
               onChange={v => set('previous_surgeries', v)} />
             {form.previous_surgeries && (
               <div className="mb-5 -mt-2">
@@ -295,10 +281,9 @@ export default function PreConsultaPage() {
                   className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             )}
-
             <YesNo label="Já teve algum problema com anestesia?"
               hint="Reações, acordou durante a cirurgia, náuseas intensas, etc."
-              value={form.anesthetic_complications} name="anesthetic_complications"
+              value={form.anesthetic_complications}
               onChange={v => set('anesthetic_complications', v)} />
             {form.anesthetic_complications && (
               <div className="mb-5 -mt-2">
@@ -309,9 +294,8 @@ export default function PreConsultaPage() {
                   className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             )}
-
             <YesNo label="Fuma ou já fumou?"
-              value={form.smoking} name="smoking"
+              value={form.smoking}
               onChange={v => set('smoking', v)} />
             {form.smoking && (
               <div className="mb-5 -mt-2">
@@ -323,13 +307,11 @@ export default function PreConsultaPage() {
             )}
           </div>
 
-          {/* ALERGIAS */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-base font-bold text-blue-700 uppercase tracking-wide mb-5">Alergias</h2>
-
             <YesNo label="Tem alergia a algum medicamento?"
               hint="Ex: penicilina, dipirona, AAS, anestésicos..."
-              value={form.drug_allergy} name="drug_allergy"
+              value={form.drug_allergy}
               onChange={v => set('drug_allergy', v)} />
             {form.drug_allergy && (
               <div className="-mt-2">
@@ -341,13 +323,11 @@ export default function PreConsultaPage() {
             )}
           </div>
 
-          {/* MEDICAMENTOS E COMORBIDADES */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-base font-bold text-blue-700 uppercase tracking-wide mb-5">Medicamentos e Doenças</h2>
-
             <YesNo label="Usa algum medicamento diariamente?"
               hint="Inclui remédios para pressão, diabetes, coração, tireoide, etc."
-              value={form.uses_medication} name="uses_medication"
+              value={form.uses_medication}
               onChange={v => set('uses_medication', v)} />
             {form.uses_medication && (
               <div className="mb-5 -mt-2">
@@ -358,7 +338,6 @@ export default function PreConsultaPage() {
                   className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             )}
-
             <div className="mb-5">
               <label className="block text-sm font-medium text-slate-700 mb-1">Quais doenças ou condições de saúde você tem?</label>
               <p className="text-xs text-slate-400 mb-2">Ex: diabetes, hipertensão, problemas no coração, asma, etc. Deixe em branco se não tiver nenhuma.</p>
@@ -368,24 +347,20 @@ export default function PreConsultaPage() {
                 rows={2}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
-
             <YesNo label="Usa Monjaro, Ozempic ou outra 'caneta emagrecedora'?"
               hint="Medicamentos injetáveis para emagrecimento ou diabetes tipo 2"
-              value={form.uses_monjaro} name="uses_monjaro"
+              value={form.uses_monjaro}
               onChange={v => set('uses_monjaro', v)} />
           </div>
 
-          {/* ITENS ESPECIAIS */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-base font-bold text-blue-700 uppercase tracking-wide mb-5">Informações Adicionais</h2>
-
             <YesNo label="Usa prótese dentária (dentadura)?"
-              value={form.dental_prosthesis} name="dental_prosthesis"
+              value={form.dental_prosthesis}
               onChange={v => set('dental_prosthesis', v)} />
-
             <YesNo label="Usa itens estéticos?"
               hint="Unhas em gel, esmalte, apliques de cabelo, piercings, etc."
-              value={form.cosmetic_items} name="cosmetic_items"
+              value={form.cosmetic_items}
               onChange={v => set('cosmetic_items', v)} />
           </div>
 
