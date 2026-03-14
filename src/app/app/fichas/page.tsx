@@ -93,7 +93,7 @@ export default function FichasPage() {
       type: 'consultation',
       patient_name: r.patient_name,
       patient_cpf: r.patient_cpf,
-      procedure_date: r.procedure_date ?? r.consultation_date,
+      procedure_date: r.consultation_date,
       surgery_name: r.surgery_name,
       institution_name: r.institutions?.name ?? null,
       plan_name: r.insurance_plans?.name ?? null,

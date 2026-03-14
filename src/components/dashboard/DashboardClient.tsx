@@ -66,7 +66,7 @@ export function DashboardClient() {
       _type: 'consultation',
       patient_name: r.patient_name,
       surgery_name: r.surgery_name,
-      procedure_date: r.procedure_date ?? r.consultation_date,
+      procedure_date: r.consultation_date,
       surgery_value: r.surgery_value,
       is_paid: r.is_paid,
       has_glosa: r.has_glosa,

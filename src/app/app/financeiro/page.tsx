@@ -42,7 +42,7 @@ export default function FinanceiroPage() {
     ])
 
     const aList = (anesthesia ?? []).map((r: any) => ({ ...r, _type: 'anesthesia', _date: r.procedure_date }))
-    const cList = (consultations ?? []).map((r: any) => ({ ...r, _type: 'consultation', _date: r.procedure_date ?? r.consultation_date }))
+    const cList = (consultations ?? []).map((r: any) => ({ ...r, _type: 'consultation', _date: r.consultation_date }))
     setAllRecords([...aList, ...cList])
     setLoading(false)
   }, [])

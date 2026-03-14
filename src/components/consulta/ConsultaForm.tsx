@@ -500,22 +500,7 @@ export function ConsultaForm({ initialData, consultaId, mode = 'create' }: Consu
                   onChange={e => set('procedure_date', e.target.value)} />
               </div>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div>
-                <label className="form-label">Instituição da Consulta</label>
-                <select className="form-select" value={form.institution_id} onChange={e => set('institution_id', e.target.value)}>
-                  <option value="">Selecione...</option>
-                  {instituicoes.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="form-label">Data da Consulta</label>
-                <input type="date" className="form-input"
-                  value={form.consultation_date}
-                  onChange={e => set('consultation_date', e.target.value)} />
-              </div>
             </div>
-          </div>
         </div>
       )}
 
@@ -807,6 +792,22 @@ export function ConsultaForm({ initialData, consultaId, mode = 'create' }: Consu
           <h2 className="text-sm font-semibold text-slate-500 mb-2">
             💼 Informações Administrativas (não aparecem na ficha impressa)
           </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <label className="form-label">Instituição da Consulta</label>
+                <select className="form-select" value={form.institution_id} onChange={e => set('institution_id', e.target.value)}>
+                  <option value="">Selecione...</option>
+                  {instituicoes.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Data da Consulta</label>
+                <input type="date" className="form-input"
+                  value={form.consultation_date}
+                  onChange={e => set('consultation_date', e.target.value)} />
+              </div>
+            </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
               <label className="form-label">Plano de Saúde</label>
