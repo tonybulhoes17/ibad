@@ -7,7 +7,7 @@ interface ConsultaPrintProps {
 }
 
 const tdStyle: React.CSSProperties = {
-  padding: '2px 5px',
+  padding: '3px 6px',
   verticalAlign: 'top',
   borderBottom: '1px solid #F1F5F9',
 }
@@ -15,8 +15,8 @@ const tdStyle: React.CSSProperties = {
 const sectionStyle: React.CSSProperties = {
   border: '1px solid #E2E8F0',
   borderRadius: 3,
-  padding: '4px 7px',
-  marginBottom: 4,
+  padding: '6px 8px',
+  marginBottom: 6,
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -51,7 +51,19 @@ function Row({ label, value }: { label: string; value?: string | null }) {
 export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps>(
   ({ record: r, profile }, ref) => {
     return (
-      <div ref={ref} className="a4-preview print-only">
+      <div
+        ref={ref}
+        className="print-only"
+        style={{
+          width: '190mm',
+          minHeight: '277mm',
+          margin: '0 auto',
+          background: '#fff',
+          padding: '8mm 9mm',
+          boxSizing: 'border-box',
+          color: '#1E293B',
+        }}
+      >
 
         {/* CABEÇALHO */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #1A56A0', paddingBottom: 6, marginBottom: 6 }}>
