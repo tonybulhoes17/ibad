@@ -1,7 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { ConsultaPrint } from '@/components/consulta/ConsultaPrint'
-import { TermoPrint } from '@/components/consulta/TermoPrint'
+import { PrintConsultaActions } from '@/components/consulta/PrintConsultaActions'
 
 export default async function PrintConsultaPage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
@@ -23,34 +23,14 @@ export default async function PrintConsultaPage({ params }: { params: { id: stri
 
   return (
     <div className="min-h-screen bg-slate-100">
-      {/* Barra de ações - não imprime */}
       <div className="no-print bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
         <div>
           <p className="font-semibold text-slate-800">{r.patient_name}</p>
           <p className="text-xs text-slate-500">Consulta Pré-Anestésica · {r.consultation_date}</p>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => window.print()}
-            className="btn-primary text-sm px-4 py-2"
-            id="print-btn"
-          >
-            🖨️ Imprimir Ficha
-          </button>
-        </div>
+        <PrintConsultaActions />
       </div>
-
-      {/* Script para print button */}
-      <script dangerouslySetInnerHTML={{
-        __html: `
-          document.getElementById('print-btn')?.addEventListener('click', function() {
-            window.print();
-          });
-        `
-      }} />
-
-      {/* Ficha */}
-      <div className="flex justify-center py-8 gap-8 flex-col items-center">
+      <div className="flex justify-center py-8">
         <div className="shadow-xl">
           <ConsultaPrint record={r} profile={profile} />
         </div>

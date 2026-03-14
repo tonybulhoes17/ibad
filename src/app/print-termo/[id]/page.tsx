@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { TermoPrint } from '@/components/consulta/TermoPrint'
+import { PrintConsultaActions } from '@/components/consulta/PrintConsultaActions'
 
 export default async function PrintTermoPage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
@@ -27,25 +28,8 @@ export default async function PrintTermoPage({ params }: { params: { id: string 
           <p className="font-semibold text-slate-800">{r.patient_name}</p>
           <p className="text-xs text-slate-500">Termo de Consentimento</p>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => window.print()}
-            className="btn-primary text-sm px-4 py-2"
-            id="print-btn"
-          >
-            🖨️ Imprimir Termo
-          </button>
-        </div>
+        <PrintConsultaActions />
       </div>
-
-      <script dangerouslySetInnerHTML={{
-        __html: `
-          document.getElementById('print-btn')?.addEventListener('click', function() {
-            window.print();
-          });
-        `
-      }} />
-
       <div className="flex justify-center py-8">
         <div className="shadow-xl">
           <TermoPrint record={r} profile={profile} />
