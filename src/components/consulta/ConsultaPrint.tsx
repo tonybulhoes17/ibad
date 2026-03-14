@@ -7,30 +7,30 @@ interface ConsultaPrintProps {
 }
 
 const tdStyle: React.CSSProperties = {
-  padding: '3.2px 6px',
+  padding: '2.6px 5.5px',
   verticalAlign: 'top',
   borderBottom: '1px solid #F1F5F9',
-  lineHeight: 1.16,
+  lineHeight: 1.14,
 }
 
 const sectionStyle: React.CSSProperties = {
   border: '1px solid #E2E8F0',
   borderRadius: 4,
-  padding: '6px 8px',
-  marginBottom: 6,
+  padding: '5px 7px',
+  marginBottom: 5,
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        fontSize: 8,
+        fontSize: 8.1,
         color: '#94A3B8',
         fontWeight: 'bold',
-        letterSpacing: 0.42,
+        letterSpacing: 0.4,
         textTransform: 'uppercase',
         marginBottom: 1,
-        lineHeight: 1.08,
+        lineHeight: 1.12,
       }}
     >
       {children}
@@ -50,11 +50,11 @@ function FieldValue({
   return (
     <div
       style={{
-        fontSize: 10.2,
+        fontSize: 10.35,
         fontWeight: bold ? 'bold' : 'normal',
         fontFamily: mono ? 'monospace' : 'Arial',
         color: '#1E293B',
-        lineHeight: 1.18,
+        lineHeight: 1.22,
       }}
     >
       {children}
@@ -66,15 +66,15 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        fontSize: 8.8,
+        fontSize: 8.95,
         fontWeight: 'bold',
         color: '#1A56A0',
         marginBottom: 3,
-        letterSpacing: 0.44,
+        letterSpacing: 0.42,
         textTransform: 'uppercase',
         borderBottom: '1px solid #E2E8F0',
         paddingBottom: 2,
-        lineHeight: 1.08,
+        lineHeight: 1.12,
       }}
     >
       {children}
@@ -84,26 +84,26 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div style={{ display: 'flex', gap: 4, marginBottom: 2 }}>
+    <div style={{ display: 'flex', gap: 4, marginBottom: 1.6 }}>
       <span
         style={{
-          fontSize: 8.2,
+          fontSize: 8.3,
           color: '#94A3B8',
           fontWeight: 'bold',
           minWidth: 102,
           textTransform: 'uppercase',
           flexShrink: 0,
-          lineHeight: 1.16,
+          lineHeight: 1.2,
         }}
       >
         {label}:
       </span>
       <span
         style={{
-          fontSize: 9.5,
+          fontSize: 9.65,
           color: '#1E293B',
           flex: 1,
-          lineHeight: 1.16,
+          lineHeight: 1.2,
         }}
       >
         {value || '—'}
@@ -120,10 +120,10 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
         className="print-only"
         style={{
           width: '190mm',
-          height: '272mm',
-          margin: '-9mm auto 0',
+          height: '266mm',
+          margin: '-9.5mm auto 0',
           background: '#fff',
-          padding: '3mm 7.5mm 3mm 7.5mm',
+          padding: '2.5mm 7mm 2.5mm 7mm',
           boxSizing: 'border-box',
           color: '#1E293B',
           overflow: 'hidden',
@@ -140,8 +140,8 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
             alignItems: 'center',
             justifyContent: 'space-between',
             borderBottom: '2.2px solid #1A56A0',
-            paddingBottom: 6,
-            marginBottom: 7,
+            paddingBottom: 5,
+            marginBottom: 6,
             flexShrink: 0,
           }}
         >
@@ -150,32 +150,33 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
               <img
                 src={r.institutions.logo_url}
                 alt="logo"
-                style={{ height: 52, maxWidth: 92, objectFit: 'contain' }}
+                style={{ height: 54, maxWidth: 96, objectFit: 'contain' }}
               />
             )}
             <div>
               <div
                 style={{
-                  fontSize: 19.4,
+                  fontSize: 20,
                   fontWeight: 'bold',
                   color: '#1A56A0',
                   letterSpacing: 0.45,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  lineHeight: 1.02,
+                  lineHeight: 1.04,
                 }}
               >
                 FICHA PRÉ ANESTÉSICA
                 {r.vad_risk && (
                   <span
                     style={{
-                      fontSize: 9.4,
+                      fontSize: 9.5,
                       background: '#EF4444',
                       color: 'white',
                       padding: '1px 5px',
                       borderRadius: 3,
                       fontWeight: 'bold',
+                      lineHeight: 1.1,
                     }}
                   >
                     VAD
@@ -184,19 +185,20 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                 {r.allergies && (
                   <span
                     style={{
-                      fontSize: 9.4,
+                      fontSize: 9.5,
                       background: '#F97316',
                       color: 'white',
                       padding: '1px 5px',
                       borderRadius: 3,
                       fontWeight: 'bold',
+                      lineHeight: 1.1,
                     }}
                   >
                     ALÉRGICO
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: 10.5, color: '#64748B', lineHeight: 1.14, marginTop: 1 }}>
+              <div style={{ fontSize: 10.7, color: '#64748B', lineHeight: 1.18, marginTop: 1 }}>
                 {r.institutions?.name ?? ''}
               </div>
             </div>
@@ -205,9 +207,9 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
           <div
             style={{
               textAlign: 'right',
-              fontSize: 8.9,
+              fontSize: 9,
               color: '#64748B',
-              lineHeight: 1.14,
+              lineHeight: 1.18,
             }}
           >
             <div>IBAD — Sistema de Ficha Anestésica</div>
@@ -316,10 +318,10 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
               <Row label="Hábitos" value={r.habits} />
               <Row label="Alergias" value={r.allergies ? (r.allergies_details || 'Sim') : 'Não'} />
               <Row label="Comorbidades" value={r.comorbidities} />
-              <div style={{ marginTop: 2 }}>
+              <div style={{ marginTop: 1.5 }}>
                 <span
                   style={{
-                    fontSize: 8.2,
+                    fontSize: 8.3,
                     color: '#94A3B8',
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
@@ -327,7 +329,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                 >
                   Medicamentos em Uso:{' '}
                 </span>
-                <span style={{ fontSize: 9.5, color: '#1E293B', lineHeight: 1.16 }}>
+                <span style={{ fontSize: 9.65, color: '#1E293B', lineHeight: 1.2 }}>
                   {r.medications || '—'}
                 </span>
               </div>
@@ -398,7 +400,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
             {/* CONCLUSÃO */}
             <div style={sectionStyle}>
               <SectionTitle>Conclusão</SectionTitle>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 3 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 2 }}>
                 <tbody>
                   <tr>
                     <td style={tdStyle}>
@@ -421,10 +423,10 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                 </tbody>
               </table>
 
-              <div style={{ marginBottom: 2 }}>
+              <div style={{ marginBottom: 1.5 }}>
                 <span
                   style={{
-                    fontSize: 8.2,
+                    fontSize: 8.3,
                     color: '#94A3B8',
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
@@ -432,16 +434,16 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                 >
                   Jejum:{' '}
                 </span>
-                <span style={{ fontSize: 9.5, color: '#1E293B', lineHeight: 1.16 }}>
+                <span style={{ fontSize: 9.65, color: '#1E293B', lineHeight: 1.2 }}>
                   {r.fasting || '—'}
                 </span>
               </div>
 
               {r.medication_instructions && (
-                <div style={{ marginBottom: 2 }}>
+                <div style={{ marginBottom: 1.5 }}>
                   <span
                     style={{
-                      fontSize: 8.2,
+                      fontSize: 8.3,
                       color: '#94A3B8',
                       fontWeight: 'bold',
                       textTransform: 'uppercase',
@@ -449,7 +451,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                   >
                     Medicamentos em Uso:{' '}
                   </span>
-                  <span style={{ fontSize: 9.5, color: '#1E293B', lineHeight: 1.16 }}>
+                  <span style={{ fontSize: 9.65, color: '#1E293B', lineHeight: 1.2 }}>
                     {r.medication_instructions}
                   </span>
                 </div>
@@ -459,7 +461,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                 <div>
                   <span
                     style={{
-                      fontSize: 8.2,
+                      fontSize: 8.3,
                       color: '#94A3B8',
                       fontWeight: 'bold',
                       textTransform: 'uppercase',
@@ -467,7 +469,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                   >
                     Observações:{' '}
                   </span>
-                  <span style={{ fontSize: 9.5, color: '#1E293B', lineHeight: 1.16 }}>
+                  <span style={{ fontSize: 9.65, color: '#1E293B', lineHeight: 1.2 }}>
                     {r.observations}
                   </span>
                 </div>
@@ -475,14 +477,14 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
             </div>
           </div>
 
-          <div style={{ marginTop: 10 }}>
+          <div style={{ marginTop: 7 }}>
             {/* DATA CONSULTA */}
             <div
               style={{
-                fontSize: 8.7,
+                fontSize: 8.8,
                 color: '#64748B',
-                marginBottom: 7,
-                lineHeight: 1.14,
+                marginBottom: 5,
+                lineHeight: 1.18,
               }}
             >
               Data da Consulta: {formatDate(r.consultation_date)}
@@ -492,7 +494,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
             <div
               style={{
                 borderTop: '1px solid #E2E8F0',
-                paddingTop: 5,
+                paddingTop: 4,
                 textAlign: 'right',
               }}
             >
@@ -502,8 +504,8 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                     src={profile.signature_url}
                     alt="Assinatura"
                     style={{
-                      maxHeight: 36,
-                      maxWidth: 155,
+                      maxHeight: 34,
+                      maxWidth: 152,
                       display: 'block',
                       margin: '0 auto 2px',
                     }}
@@ -512,23 +514,23 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                 <div style={{ borderTop: '1px solid #1E293B', paddingTop: 2, marginTop: 2 }}>
                   <div
                     style={{
-                      fontSize: 9.6,
+                      fontSize: 9.75,
                       fontWeight: 'bold',
                       color: '#1E293B',
-                      lineHeight: 1.12,
+                      lineHeight: 1.16,
                     }}
                   >
                     {profile?.full_name ?? '—'}
                   </div>
-                  <div style={{ fontSize: 8, color: '#64748B', lineHeight: 1.12 }}>
+                  <div style={{ fontSize: 8.1, color: '#64748B', lineHeight: 1.16 }}>
                     Anestesiologista
                   </div>
                   <div
                     style={{
-                      fontSize: 8,
+                      fontSize: 8.1,
                       color: '#64748B',
                       fontFamily: 'monospace',
-                      lineHeight: 1.12,
+                      lineHeight: 1.16,
                     }}
                   >
                     CRM: {profile?.crm ?? '—'}
@@ -536,10 +538,10 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                   {profile?.rqe && (
                     <div
                       style={{
-                        fontSize: 8,
+                        fontSize: 8.1,
                         color: '#64748B',
                         fontFamily: 'monospace',
-                        lineHeight: 1.12,
+                        lineHeight: 1.16,
                       }}
                     >
                       RQE: {profile.rqe}
