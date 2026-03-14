@@ -165,10 +165,13 @@ export function DashboardClient() {
           </h1>
           <p className="text-sm text-slate-500">Resumo da sua produção</p>
         </div>
-        <Link href="/app/nova-ficha"
-          className="btn-primary flex items-center gap-2 text-sm hidden sm:flex">
-          <Plus className="w-4 h-4" /> Nova Ficha
-        </Link>
+        <div className="flex items-center gap-2">
+          <CopyLinkButton />
+          <Link href="/app/nova-ficha"
+            className="btn-primary flex items-center gap-2 text-sm hidden sm:flex">
+            <Plus className="w-4 h-4" /> Nova Ficha
+          </Link>
+        </div>
       </div>
 
       {/* Filtros: Período + Tipo */}
@@ -305,6 +308,29 @@ export function DashboardClient() {
       </div>
 
     </div>
+  )
+}
+
+function CopyLinkButton() {
+  const [copied, setCopied] = useState(false)
+  const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/pre-consulta`
+
+  function handleCopy() {
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <button onClick={handleCopy}
+      title="Copiar link da pré-consulta para pacientes"
+      className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+        copied
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          : 'bg-white text-slate-500 border-slate-200 hover:border-primary-300 hover:text-primary-600'
+      }`}>
+      {copied ? '✓ Link copiado!' : '🔗 Link pré-consulta'}
+    </button>
   )
 }
 
