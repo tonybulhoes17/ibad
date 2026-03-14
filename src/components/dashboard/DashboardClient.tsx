@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { FileText, DollarSign, AlertCircle, CheckCircle2, Plus, Calendar, Stethoscope, ClipboardList, TrendingUp } from 'lucide-react'
@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { startOfMonth, endOfMonth, subMonths, isWithinInterval, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { format } from 'date-fns'
+import { createClient } from '@/lib/supabase/client'
 
 interface Record {
   id: string
@@ -21,14 +22,67 @@ interface Record {
   institutions: { name: string } | null
 }
 
-interface Props {
-  records: Record[]
-  profile: { full_name: string; crm: string } | null
-}
-
-export function DashboardClient({ records, profile }: Props) {
+export function DashboardClient() {
+  const supabase = createClient()
+  const [records, setRecords] = useState<Record[]>([])
+  const [profile, setProfile] = useState<{ full_name: string; crm: string } | null>(null)
+  const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month')
   const [typeFilter, setTypeFilter] = useState<'all' | 'anesthesia' | 'consultation'>('all')
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const [{ data: anesthesia }, { data: consultations }, { data: prof }] = await Promise.all([
+      supabase
+        .from('anesthesia_records')
+        .select('*, institutions(name)')
+        .eq('user_id', user.id)
+        .order('procedure_date', { ascending: false }),
+      supabase
+        .from('consultation_records')
+        .select('*, institutions(name)')
+        .eq('user_id', user.id)
+        .order('procedure_date', { ascending: false }),
+      supabase.from('profiles').select('full_name, crm').eq('id', user.id).single(),
+    ])
+
+    const aList: Record[] = (anesthesia ?? []).map((r: any) => ({
+      id: r.id,
+      _type: 'anesthesia',
+      patient_name: r.patient_name,
+      surgery_name: r.surgery_name,
+      procedure_date: r.procedure_date,
+      surgery_value: r.surgery_value,
+      is_paid: r.is_paid,
+      has_glosa: r.has_glosa,
+      institutions: r.institutions,
+    }))
+
+    const cList: Record[] = (consultations ?? []).map((r: any) => ({
+      id: r.id,
+      _type: 'consultation',
+      patient_name: r.patient_name,
+      surgery_name: r.surgery_name,
+      procedure_date: r.procedure_date ?? r.consultation_date,
+      surgery_value: r.surgery_value,
+      is_paid: r.is_paid,
+      has_glosa: r.has_glosa,
+      institutions: r.institutions,
+    }))
+
+    const all = [...aList, ...cList].sort((a, b) =>
+      new Date(b.procedure_date).getTime() - new Date(a.procedure_date).getTime()
+    )
+
+    setRecords(all)
+    setProfile(prof as any)
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
 
   const filteredByType = useMemo(() => {
     if (typeFilter === 'all') return records
@@ -42,13 +96,19 @@ export function DashboardClient({ records, profile }: Props) {
     if (period === 'week') {
       const weekAgo = new Date(now)
       weekAgo.setDate(weekAgo.getDate() - 7)
-      filtered = filteredByType.filter(r => parseISO(r.procedure_date) >= weekAgo)
+      filtered = filteredByType.filter(r => {
+        try { return parseISO(r.procedure_date) >= weekAgo } catch { return false }
+      })
     } else if (period === 'month') {
       const start = startOfMonth(now)
       const end = endOfMonth(now)
-      filtered = filteredByType.filter(r => isWithinInterval(parseISO(r.procedure_date), { start, end }))
+      filtered = filteredByType.filter(r => {
+        try { return isWithinInterval(parseISO(r.procedure_date), { start, end }) } catch { return false }
+      })
     } else if (period === 'year') {
-      filtered = filteredByType.filter(r => parseISO(r.procedure_date).getFullYear() === now.getFullYear())
+      filtered = filteredByType.filter(r => {
+        try { return parseISO(r.procedure_date).getFullYear() === now.getFullYear() } catch { return false }
+      })
     }
 
     const total = filtered.length
@@ -86,6 +146,14 @@ export function DashboardClient({ records, profile }: Props) {
 
   const recentRecords = filteredByType.slice(0, 5)
 
+  if (loading) {
+    return (
+      <div className="p-4 lg:p-6 max-w-7xl mx-auto">
+        <div className="card p-12 text-center text-slate-400">Carregando dashboard...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto animate-fade-in">
 
@@ -105,7 +173,6 @@ export function DashboardClient({ records, profile }: Props) {
 
       {/* Filtros: Período + Tipo */}
       <div className="flex flex-wrap gap-2 mb-5">
-        {/* Período */}
         {(['week', 'month', 'year'] as const).map(p => (
           <button key={p} onClick={() => setPeriod(p)}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
@@ -117,9 +184,8 @@ export function DashboardClient({ records, profile }: Props) {
 
         <div className="w-px bg-slate-200 mx-1" />
 
-        {/* Tipo */}
         {[
-          { value: 'all', label: 'Todas', icon: null },
+          { value: 'all', label: 'Todas' },
           { value: 'anesthesia', label: 'Anestésicas', icon: <ClipboardList className="w-3 h-3" /> },
           { value: 'consultation', label: 'Pré-Anestésicas', icon: <Stethoscope className="w-3 h-3" /> },
         ].map(opt => (
@@ -131,15 +197,14 @@ export function DashboardClient({ records, profile }: Props) {
                   : 'bg-primary-700 text-white border-primary-700'
                 : 'bg-white text-slate-600 border-slate-200 hover:border-primary-300'
             }`}>
-            {opt.icon}{opt.label}
+            {(opt as any).icon}{opt.label}
           </button>
         ))}
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <StatCard
-          icon={<FileText className="w-4 h-4" />}
+        <StatCard icon={<FileText className="w-4 h-4" />}
           label={typeFilter === 'consultation' ? 'Consultas' : typeFilter === 'anesthesia' ? 'Cirurgias' : 'Registros'}
           value={stats.total.toString()} color="blue" />
         <StatCard icon={<DollarSign className="w-4 h-4" />} label="Total Previsto"
@@ -208,23 +273,21 @@ export function DashboardClient({ records, profile }: Props) {
             {recentRecords.map(r => (
               <Link key={r.id}
                 href={r._type === 'anesthesia' ? `/app/fichas/${r.id}` : `/app/consultas/${r.id}`}
-                className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors group">
+                className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <p className="text-sm font-medium text-slate-900 truncate">{r.patient_name}</p>
-                    {r._type === 'consultation' ? (
-                      <span className="text-xs bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full flex-shrink-0">Pré-Anest.</span>
-                    ) : (
-                      <span className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full flex-shrink-0">Anest.</span>
-                    )}
+                    {r._type === 'consultation'
+                      ? <span className="text-xs bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full flex-shrink-0">Pré-Anest.</span>
+                      : <span className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full flex-shrink-0">Anest.</span>
+                    }
                   </div>
                   <p className="text-xs text-slate-400 truncate">{r.surgery_name ?? '—'}</p>
                 </div>
                 <div className="flex items-center gap-3 ml-4">
                   <div className="text-right hidden sm:block">
                     <p className="text-xs text-slate-500 flex items-center gap-1 justify-end">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(r.procedure_date)}
+                      <Calendar className="w-3 h-3" />{formatDate(r.procedure_date)}
                     </p>
                     <p className="text-xs font-mono text-slate-600">{formatCurrency(r.surgery_value)}</p>
                   </div>
