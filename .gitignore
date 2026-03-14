@@ -1,3 +1,3 @@
 node_modules
 .next
-.env.local
+.env.local!src/app/app/consultas/[id]/page.tsx 
