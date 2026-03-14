@@ -98,8 +98,8 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
         </div>
 
         {/* MIOLO — flex cresce para ocupar o espaço */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6, minHeight: 0 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, justifyContent: 'space-evenly' }}>
 
             {/* DADOS PESSOAIS */}
             <div style={sectionStyle}>
@@ -294,7 +294,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
           </div>
 
           {/* RODAPÉ — empurrado para baixo pelo flex */}
-          <div>
+          <div style={{ marginTop: 'auto', paddingTop: 8 }}>
             <div style={{ fontSize: 9.5, color: '#64748B', marginBottom: 8 }}>
               Data da Consulta: {formatDate(r.consultation_date)}
             </div>
