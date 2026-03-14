@@ -6,7 +6,7 @@ import { formatDate } from '@/lib/utils'
 import { ANESTHESIA_TYPES } from '@/constants/anesthesia'
 
 export default async function ViewConsultaPage({ params }: { params: { id: string } }) {
-  console.log('PARAMS:', params)
+  
   const supabase = createServerClient()
   const { data } = await supabase
     .from('consultation_records')
@@ -14,9 +14,10 @@ export default async function ViewConsultaPage({ params }: { params: { id: strin
     .eq('id', params.id)
     .single()
 
-  console.log('DATA:', data)
+  
   if (!data) notFound()
-
+  const r = data as any
+  
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-5">
