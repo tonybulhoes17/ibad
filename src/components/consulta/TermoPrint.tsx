@@ -13,7 +13,7 @@ export const TermoPrint = React.forwardRef<HTMLDivElement, TermoPrintProps>(
         className="print-only"
         style={{
           width: '210mm',
-          height: '295mm',
+          height: '280mm',
           margin: '0 auto',
           background: '#fff',
           padding: '8mm 10mm',
