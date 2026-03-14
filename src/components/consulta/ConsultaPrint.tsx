@@ -16,7 +16,7 @@ const tdStyle: React.CSSProperties = {
 const sectionStyle: React.CSSProperties = {
   border: '1px solid #E2E8F0',
   borderRadius: 4,
-  padding: '7px 10px',
+  padding: '5px 10px',
   marginBottom: 0,
 }
 
@@ -68,7 +68,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
           height: '297mm',
           margin: '0 auto',
           background: '#fff',
-          padding: '8mm 10mm',
+          padding: '6mm 8mm',
           boxSizing: 'border-box',
           color: '#1E293B',
           overflow: 'hidden',
