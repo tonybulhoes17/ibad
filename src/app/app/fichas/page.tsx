@@ -66,7 +66,7 @@ export default function FichasPage() {
           <h1 className="text-xl font-bold text-slate-900">Fichas Anestésicas</h1>
           <p className="text-sm text-slate-500">{fichas.length} ficha{fichas.length !== 1 ? 's' : ''} encontrada{fichas.length !== 1 ? 's' : ''}</p>
         </div>
-        <Link href="/app/fichas/nova" className="btn-primary flex items-center gap-2 text-sm">
+        <Link href="/app/nova-ficha" className="btn-primary flex items-center gap-2 text-sm">
           <Plus className="w-4 h-4" /> Nova Ficha
         </Link>
       </div>
@@ -166,7 +166,7 @@ export default function FichasPage() {
       ) : fichas.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-slate-400 mb-4">Nenhuma ficha encontrada</p>
-          <Link href="/app/fichas/nova" className="btn-primary inline-flex items-center gap-2 text-sm">
+          <Link href="/app/nova-ficha" className="btn-primary inline-flex items-center gap-2 text-sm">
             <Plus className="w-4 h-4" /> Criar primeira ficha
           </Link>
         </div>
