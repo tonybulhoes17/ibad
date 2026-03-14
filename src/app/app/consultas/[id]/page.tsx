@@ -37,27 +37,22 @@ export default async function ViewConsultaPage({ params }: { params: { id: strin
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href={`/print-consulta/${r.id}`}
-            target="_blank"
-            className="btn-secondary flex items-center gap-2 text-sm"
-          >
-            <Printer className="w-4 h-4" /> Imprimir
+          <Link href={`/print-consulta/${r.id}`} target="_blank"
+            className="btn-secondary flex items-center gap-2 text-sm">
+            <Printer className="w-4 h-4" /> Ficha
           </Link>
-          <Link
-            href={`/app/consultas/${r.id}/editar`}
-            className="btn-primary flex items-center gap-2 text-sm"
-          >
+          <Link href={`/print-termo/${r.id}`} target="_blank"
+            className="btn-secondary flex items-center gap-2 text-sm">
+            📋 Termo
+          </Link>
+          <Link href={`/app/consultas/${r.id}/editar`}
+            className="btn-primary flex items-center gap-2 text-sm">
             <Edit2 className="w-4 h-4" /> Editar
           </Link>
         </div>
       </div>
 
-      {/* TESTE VISUAL */}
-      <div className="bg-yellow-100 border border-yellow-300 rounded-xl px-4 py-3 mb-4 text-sm text-yellow-800">
-        Conteúdo da consulta carregado abaixo
-      </div>
-
+      
       {/* Alertas */}
       {r.vad_risk && (
         <div className="mb-4 flex items-center gap-2 bg-red-50 border border-red-300 rounded-xl px-4 py-3 text-sm text-red-700 font-semibold">
