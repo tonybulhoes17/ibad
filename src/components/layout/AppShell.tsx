@@ -56,12 +56,12 @@ export function AppShell({ profile, children }: AppShellProps) {
       {/* CTA Nova Ficha */}
       <div className="px-3 py-3 border-b border-slate-100">
         <Link
-          href="/app/fichas/nova"
+          href="/app/nova-ficha"
           onClick={() => setSidebarOpen(false)}
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary-700 hover:bg-primary-800 text-white text-sm font-medium rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Lançar Ficha
+          Nova Ficha
         </Link>
       </div>
 
@@ -155,7 +155,7 @@ export function AppShell({ profile, children }: AppShellProps) {
             </div>
             <span className="text-sm font-bold text-slate-900">IBAD</span>
           </div>
-          <Link href="/app/fichas/nova" className="p-1.5 bg-primary-700 rounded-lg text-white">
+          <Link href="/app/nova-ficha" className="p-1.5 bg-primary-700 rounded-lg text-white">
             <Plus className="w-5 h-5" />
           </Link>
         </header>
