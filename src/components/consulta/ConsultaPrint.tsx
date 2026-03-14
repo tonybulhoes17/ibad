@@ -65,7 +65,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
         className="print-only"
         style={{
           width: '190mm',
-          height: '272mm',
+          height: '260mm',
           margin: '-9mm auto 0',
           background: '#fff',
           padding: '4mm 8mm',
