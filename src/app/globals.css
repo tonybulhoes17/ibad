@@ -109,7 +109,7 @@ body {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 12mm 14mm 12mm 14mm;
+    margin: 10mm 12mm 10mm 12mm;
   }
 
   * {
@@ -120,6 +120,8 @@ body {
   body {
     background: white !important;
     font-size: 10pt;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .no-print {
@@ -130,12 +132,18 @@ body {
     display: block !important;
   }
 
-  /* Evitar quebra dentro de elementos importantes */
   .print-no-break {
     break-inside: avoid;
   }
-}
 
+  .a4-preview {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+}
 /* ============================================================
    ANIMAÇÕES SUAVES
    ============================================================ */

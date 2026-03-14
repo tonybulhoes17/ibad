@@ -65,7 +65,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
         className="print-only"
         style={{
           width: '190mm',
-          height: '260mm',
+          height: '255mm',
           margin: '-9mm auto 0',
           background: '#fff',
           padding: '4mm 8mm',
@@ -81,18 +81,18 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2.5px solid #1A56A0', paddingBottom: 8, marginBottom: 8, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {r.institutions?.logo_url && (
-              <img src={r.institutions.logo_url} alt="logo" style={{ height: 52, maxWidth: 96, objectFit: 'contain' }} />
+              <img src={r.institutions.logo_url} alt="logo" style={{ height: 60, maxWidth: 96, objectFit: 'contain' }} />
             )}
             <div>
-              <div style={{ fontSize: 22, fontWeight: 'bold', color: '#1A56A0', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.1 }}>
+              <div style={{ fontSize: 26, fontWeight: 'bold', color: '#1A56A0', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.1 }}>
                 FICHA PRÉ ANESTÉSICA
-                {r.vad_risk && <span style={{ fontSize: 10, background: '#EF4444', color: 'white', padding: '2px 6px', borderRadius: 3, fontWeight: 'bold' }}>VAD</span>}
-                {r.allergies && <span style={{ fontSize: 10, background: '#F97316', color: 'white', padding: '2px 6px', borderRadius: 3, fontWeight: 'bold' }}>ALÉRGICO</span>}
+                {r.vad_risk && <span style={{ fontSize: 11, background: '#EF4444', color: 'white', padding: '2px 7px', borderRadius: 3, fontWeight: 'bold' }}>VAD</span>}
+                {r.allergies && <span style={{ fontSize: 11, background: '#F97316', color: 'white', padding: '2px 7px', borderRadius: 3, fontWeight: 'bold' }}>ALÉRGICO</span>}
               </div>
-              <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>{r.institutions?.name ?? ''}</div>
+              <div style={{ fontSize: 12, color: '#64748B', marginTop: 3 }}>{r.institutions?.name ?? ''}</div>
             </div>
           </div>
-          <div style={{ textAlign: 'right', fontSize: 9.5, color: '#64748B' }}>
+          <div style={{ textAlign: 'right', fontSize: 10, color: '#64748B' }}>
             IBAD — Sistema de Ficha Anestésica
           </div>
         </div>
