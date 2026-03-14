@@ -8,20 +8,28 @@ import { ANESTHESIA_TYPES } from '@/constants/anesthesia'
 export default async function ViewConsultaPage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
 
+  console.log('params.id:', params.id)
+
   const { data, error } = await supabase
     .from('consultation_records')
     .select('*, institutions(*), insurance_plans(*), profiles:user_id(full_name, crm, rqe, signature_url)')
     .eq('id', params.id)
-    .single()
+    .maybeSingle()
 
-  console.log('params.id:', params.id)
   console.log('error:', error)
   console.log('data:', data)
 
-  if (!data) notFound()
+  if (error) {
+    console.error('Erro ao buscar consulta:', error)
+  }
+
+  if (!data) {
+    console.error('Consulta não encontrada para o ID:', params.id)
+    notFound()
+  }
 
   const r = data as any
-  
+
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-5">
