@@ -82,7 +82,7 @@ export function DashboardClient({ records, profile }: Props) {
           </h1>
           <p className="text-sm text-slate-500">Resumo da sua produção</p>
         </div>
-        <Link href="/app/fichas/nova"
+        <Link href="/app/nova-ficha"
           className="btn-primary flex items-center gap-2 text-sm hidden sm:flex">
           <Plus className="w-4 h-4" /> Nova Ficha
         </Link>
@@ -161,7 +161,7 @@ export function DashboardClient({ records, profile }: Props) {
           <div className="py-12 text-center text-slate-400">
             <FileText className="w-8 h-8 mx-auto mb-3 opacity-40" />
             <p className="text-sm">Nenhuma ficha cadastrada ainda</p>
-            <Link href="/app/fichas/nova" className="btn-primary inline-flex items-center gap-2 mt-4 text-sm">
+            <Link href="/app/nova-ficha" className="btn-primary inline-flex items-center gap-2 mt-4 text-sm">
               <Plus className="w-4 h-4" /> Criar primeira ficha
             </Link>
           </div>
