@@ -7,15 +7,20 @@ import { ANESTHESIA_TYPES } from '@/constants/anesthesia'
 
 export default async function ViewConsultaPage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
-  const { data } = await supabase
+
+  const { data, error } = await supabase
     .from('consultation_records')
     .select('*, institutions(*), insurance_plans(*), profiles:user_id(full_name, crm, rqe, signature_url)')
     .eq('id', params.id)
     .single()
-  
+
+  console.log('params.id:', params.id)
+  console.log('error:', error)
+  console.log('data:', data)
+
   if (!data) notFound()
+
   const r = data as any
-  
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-5">
