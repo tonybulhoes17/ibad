@@ -84,7 +84,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
               <img src={r.institutions.logo_url} alt="logo" style={{ height: 60, maxWidth: 96, objectFit: 'contain' }} />
             )}
             <div>
-              <div style={{ fontSize: 26, fontWeight: 'bold', color: '#1A56A0', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.1 }}>
+              <div style={{ fontSize: 26, fontWeight: 'bold', color: '#1A56A0', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.1 }}>
                 FICHA PRÉ ANESTÉSICA
                 {r.vad_risk && <span style={{ fontSize: 11, background: '#EF4444', color: 'white', padding: '2px 7px', borderRadius: 3, fontWeight: 'bold' }}>VAD</span>}
                 {r.allergies && <span style={{ fontSize: 11, background: '#F97316', color: 'white', padding: '2px 7px', borderRadius: 3, fontWeight: 'bold' }}>ALÉRGICO</span>}
@@ -99,7 +99,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
 
         {/* MIOLO — flex cresce para ocupar o espaço */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, justifyContent: 'space-evenly' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, justifyContent: 'space-evenly' }}>
 
             {/* DADOS PESSOAIS */}
             <div style={sectionStyle}>
@@ -274,7 +274,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
                   </tr>
                 </tbody>
               </table>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
+              <div style={{ display: 'flex', gap: 5, marginBottom: 4 }}>
                 <span style={{ fontSize: 9, color: '#94A3B8', fontWeight: 'bold', minWidth: 115, textTransform: 'uppercase', flexShrink: 0 }}>Jejum:</span>
                 <span style={{ fontSize: 10.5, color: '#1E293B', flex: 1 }}>{r.fasting || '—'}</span>
               </div>
