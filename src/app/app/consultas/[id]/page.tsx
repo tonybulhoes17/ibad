@@ -6,14 +6,12 @@ import { formatDate } from '@/lib/utils'
 import { ANESTHESIA_TYPES } from '@/constants/anesthesia'
 
 export default async function ViewConsultaPage({ params }: { params: { id: string } }) {
-  
   const supabase = createServerClient()
   const { data } = await supabase
     .from('consultation_records')
-    .select('*')
+    .select('*, institutions(*), insurance_plans(*), profiles:user_id(full_name, crm, rqe, signature_url)')
     .eq('id', params.id)
     .single()
-
   
   if (!data) notFound()
   const r = data as any
