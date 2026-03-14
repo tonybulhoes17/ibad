@@ -21,6 +21,7 @@ export default async function ViewConsultaPage({ params }: { params: { id: strin
   if (!data) notFound()
 
   const r = data as any
+  
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-5">
