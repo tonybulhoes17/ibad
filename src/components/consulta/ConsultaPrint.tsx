@@ -7,7 +7,7 @@ interface ConsultaPrintProps {
 }
 
 const tdStyle: React.CSSProperties = {
-  padding: '5px 8px',
+  padding: '3px 8px',
   verticalAlign: 'top',
   borderBottom: '1px solid #F1F5F9',
   lineHeight: 1.3,
@@ -46,7 +46,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
+    <div style={{ display: 'flex', gap: 6, marginBottom: 2 }}>
       <span style={{ fontSize: 9, color: '#94A3B8', fontWeight: 'bold', minWidth: 115, textTransform: 'uppercase', flexShrink: 0, lineHeight: 1.3 }}>
         {label}:
       </span>

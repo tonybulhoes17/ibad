@@ -39,12 +39,12 @@ export const TermoPrint = React.forwardRef<HTMLDivElement, TermoPrintProps>(
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
 
           {/* TÍTULO */}
-          <div style={{ fontSize: 10.5, fontWeight: 'bold', textAlign: 'center', marginBottom: 12, color: '#1E293B' }}>
+          <div style={{ fontSize: 11, fontWeight: 'bold', textAlign: 'center', marginBottom: 12, color: '#1E293B' }}>
             TERMO DE CIÊNCIA E CONSENTIMENTO PARA REALIZAÇÃO DE PROCEDIMENTO ANESTÉSICO
           </div>
 
           {/* TEXTO */}
-          <div style={{ fontSize: 10.5, lineHeight: 1.65, color: '#1E293B', textAlign: 'justify' }}>
+          <div style={{ fontSize: 11, lineHeight: 1.45, color: '#1E293B', textAlign: 'justify' }}>
             <p style={{ marginBottom: 7 }}>
               O presente termo tem o dever ético de comprovar as informações prestadas ao paciente e/ou responsável pelo médico anestesiologista dos principais aspectos relacionados ao procedimento anestésico ao(s) qual(is) será submetido.
             </p>
@@ -100,7 +100,7 @@ export const TermoPrint = React.forwardRef<HTMLDivElement, TermoPrintProps>(
           </div>
 
           {/* TEXTO MÉDICO */}
-          <div style={{ fontSize: 10.5, lineHeight: 1.65, color: '#1E293B', marginBottom: 16, textAlign: 'justify' }}>
+          <div style={{ fontSize: 11, lineHeight: 1.45, color: '#1E293B', marginBottom: 16, textAlign: 'justify' }}>
             Expliquei o procedimento anestésico ao paciente acima identificado e/ou seu responsável, sobre os benefícios, riscos e alternativas, tendo respondido às perguntas formuladas pelo(s) mesmo(s). De acordo com o meu entendimento, o paciente e/ou seu responsável está em condições de compreender o que lhe foi informado.
           </div>
 
