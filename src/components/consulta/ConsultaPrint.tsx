@@ -56,10 +56,10 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
         className="print-only"
         style={{
           width: '190mm',
-          minHeight: '277mm',
-          margin: '0 auto',
+          minHeight: '282mm',
+          margin: '-3mm auto 0',
           background: '#fff',
-          padding: '8mm 9mm',
+          padding: '6mm 9mm 8mm 9mm',
           boxSizing: 'border-box',
           color: '#1E293B',
         }}
@@ -185,46 +185,59 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
         {/* EXAME FÍSICO */}
         <div style={sectionStyle}>
           <SectionTitle>Exame Físico</SectionTitle>
+
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
+
+              {/* LINHA PRINCIPAL */}
               <tr>
                 <td style={tdStyle}>
                   <FieldLabel>Estado Físico ASA</FieldLabel>
                   <FieldValue bold>{r.asa_status ?? '—'}</FieldValue>
                 </td>
+
                 <td style={tdStyle}>
                   <FieldLabel>Urgência</FieldLabel>
                   <FieldValue>{r.urgency ? '☑' : '☐'}</FieldValue>
                 </td>
+
                 <td style={tdStyle}>
                   <FieldLabel>Peso (kg)</FieldLabel>
                   <FieldValue>{r.weight ?? '—'}</FieldValue>
                 </td>
+
                 <td style={tdStyle}>
                   <FieldLabel>Altura (cm)</FieldLabel>
                   <FieldValue>{r.height ?? '—'}</FieldValue>
                 </td>
+
                 <td style={tdStyle}>
                   <FieldLabel>IMC</FieldLabel>
                   <FieldValue>{r.imc ?? '—'}</FieldValue>
                 </td>
-                <td style={tdStyle}>
-                  <FieldLabel>Exame Físico</FieldLabel>
-                  <FieldValue>{r.physical_exam ?? '—'}</FieldValue>
-                </td>
+
                 <td style={tdStyle}>
                   <FieldLabel>Mallampati</FieldLabel>
                   <FieldValue bold>{r.mallampati ?? '—'}</FieldValue>
                 </td>
+
                 <td style={tdStyle}>
                   <FieldLabel>Risco VAD</FieldLabel>
                   <FieldValue bold>{r.vad_risk ? '☑' : '☐'}</FieldValue>
                 </td>
               </tr>
+
+              {/* EXAME FÍSICO EM LINHA SEPARADA */}
+              <tr>
+                <td style={tdStyle} colSpan={7}>
+                  <FieldLabel>Exame Físico</FieldLabel>
+                  <FieldValue>{r.physical_exam ?? '—'}</FieldValue>
+                </td>
+              </tr>
+
             </tbody>
           </table>
         </div>
-
         {/* EXAMES */}
         <div style={sectionStyle}>
           <SectionTitle>Exames</SectionTitle>
