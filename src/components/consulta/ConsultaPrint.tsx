@@ -68,7 +68,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
           height: '279mm',
           margin: '0 auto',
           background: '#fff',
-          padding: '6mm 8mm',
+          padding: '8mm 10mm',
           boxSizing: 'border-box',
           color: '#1E293B',
           overflow: 'hidden',

@@ -1,94 +1,208 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useFichas, useSaveFicha, useInstituicoes } from '@/hooks'
-import type { FichaFilters } from '@/hooks'
+import { useInstituicoes, usePlanos } from '@/hooks'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import {
   Search, Plus, Printer, Eye, Edit2, Trash2,
-  Filter, X, Calendar, CheckCircle2, Clock, AlertTriangle
+  Filter, X, Calendar, CheckCircle2, Clock, AlertTriangle, Stethoscope, ClipboardList
 } from 'lucide-react'
 import { ANESTHESIA_TYPES } from '@/constants/anesthesia'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+type RecordType = 'anesthesia' | 'consultation'
+
+interface UnifiedRecord {
+  id: string
+  type: RecordType
+  patient_name: string
+  patient_cpf: string | null
+  procedure_date: string
+  surgery_name: string | null
+  institution_name: string | null
+  plan_name: string | null
+  anesthesia_type: string | null
+  surgery_value: number | null
+  is_paid: boolean
+  has_glosa: boolean
+  view_href: string
+  edit_href: string
+  print_href: string
+}
+
 export default function FichasPage() {
-  const router = useRouter()
   const supabase = createClient()
-  const [filters, setFilters] = useState<FichaFilters>({})
-  const [showFilters, setShowFilters] = useState(false)
-  const [search, setSearch] = useState('')
-  const [updatingId, setUpdatingId] = useState<string | null>(null)
-  const [editingValue, setEditingValue] = useState<{ id: string; value: string } | null>(null)
-  const { fichas, loading, refetch } = useFichas({ ...filters, patient_name: search || undefined })
-  const { remove } = useSaveFicha()
   const { instituicoes } = useInstituicoes()
+  const { planos } = usePlanos()
 
-  function setFilter(key: keyof FichaFilters, value: unknown) {
-    setFilters(prev => ({ ...prev, [key]: value || undefined }))
-  }
+  const [records, setRecords] = useState<UnifiedRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [editingValue, setEditingValue] = useState<{ id: string; type: RecordType; value: string } | null>(null)
 
-  async function handleDelete(id: string) {
-    if (!confirm('Excluir esta ficha? Esta ação não pode ser desfeita.')) return
-    await remove(id)
-    refetch()
-  }
+  // Filtros
+  const [filterType, setFilterType] = useState<'all' | 'anesthesia' | 'consultation'>('all')
+  const [filterInstitution, setFilterInstitution] = useState('')
+  const [filterPlan, setFilterPlan] = useState('')
+  const [filterPaid, setFilterPaid] = useState('')
+  const [filterGlosa, setFilterGlosa] = useState('')
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
 
-  async function togglePagamento(id: string, isPaid: boolean) {
-    setUpdatingId(id)
-    await (supabase.from('anesthesia_records') as any)
-      .update({ is_paid: !isPaid, has_glosa: false })
-      .eq('id', id)
-    await refetch()
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const [{ data: anesthesia }, { data: consultations }] = await Promise.all([
+      supabase
+        .from('anesthesia_records')
+        .select('*, institutions(name), insurance_plans(name)')
+        .eq('user_id', user.id)
+        .order('procedure_date', { ascending: false }),
+      supabase
+        .from('consultation_records')
+        .select('*, institutions(name), insurance_plans(name)')
+        .eq('user_id', user.id)
+        .order('procedure_date', { ascending: false }),
+    ])
+
+    const aList: UnifiedRecord[] = (anesthesia ?? []).map((r: any) => ({
+      id: r.id,
+      type: 'anesthesia',
+      patient_name: r.patient_name,
+      patient_cpf: r.patient_cpf,
+      procedure_date: r.procedure_date,
+      surgery_name: r.surgery_name,
+      institution_name: r.institutions?.name ?? null,
+      plan_name: r.insurance_plans?.name ?? null,
+      anesthesia_type: r.anesthesia_type,
+      surgery_value: r.surgery_value,
+      is_paid: r.is_paid,
+      has_glosa: r.has_glosa,
+      view_href: `/app/fichas/${r.id}`,
+      edit_href: `/app/fichas/${r.id}/editar`,
+      print_href: `/print/${r.id}`,
+    }))
+
+    const cList: UnifiedRecord[] = (consultations ?? []).map((r: any) => ({
+      id: r.id,
+      type: 'consultation',
+      patient_name: r.patient_name,
+      patient_cpf: r.patient_cpf,
+      procedure_date: r.procedure_date ?? r.consultation_date,
+      surgery_name: r.surgery_name,
+      institution_name: r.institutions?.name ?? null,
+      plan_name: r.insurance_plans?.name ?? null,
+      anesthesia_type: null,
+      surgery_value: r.surgery_value,
+      is_paid: r.is_paid,
+      has_glosa: r.has_glosa,
+      view_href: `/app/consultas/${r.id}`,
+      edit_href: `/app/consultas/${r.id}/editar`,
+      print_href: `/print-consulta/${r.id}`,
+    }))
+
+    const all = [...aList, ...cList].sort((a, b) =>
+      new Date(b.procedure_date).getTime() - new Date(a.procedure_date).getTime()
+    )
+    setRecords(all)
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  const filtered = records.filter(r => {
+    if (filterType !== 'all' && r.type !== filterType) return false
+    if (search && !r.patient_name.toLowerCase().includes(search.toLowerCase())) return false
+    if (filterInstitution && r.institution_name !== instituicoes.find(i => i.id === filterInstitution)?.name) return false
+    if (filterPlan && r.plan_name !== planos.find(p => p.id === filterPlan)?.name) return false
+    if (filterPaid === 'paid' && !r.is_paid) return false
+    if (filterPaid === 'unpaid' && r.is_paid) return false
+    if (filterGlosa === 'yes' && !r.has_glosa) return false
+    if (filterGlosa === 'no' && r.has_glosa) return false
+    if (filterDateFrom && r.procedure_date < filterDateFrom) return false
+    if (filterDateTo && r.procedure_date > filterDateTo) return false
+    return true
+  })
+
+  const activeFiltersCount = [filterType !== 'all', filterInstitution, filterPlan, filterPaid, filterGlosa, filterDateFrom, filterDateTo].filter(Boolean).length
+
+  async function togglePagamento(r: UnifiedRecord) {
+    setUpdatingId(r.id)
+    const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
+    await (supabase.from(table) as any)
+      .update({ is_paid: !r.is_paid, has_glosa: false })
+      .eq('id', r.id)
+    await fetchAll()
     setUpdatingId(null)
   }
 
-  async function saveValue(id: string) {
+  async function saveValue(r: UnifiedRecord) {
     if (!editingValue) return
     const numVal = parseFloat(editingValue.value.replace(',', '.'))
     if (!isNaN(numVal)) {
-      await (supabase.from('anesthesia_records') as any)
+      const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
+      await (supabase.from(table) as any)
         .update({ surgery_value: numVal })
-        .eq('id', id)
-      await refetch()
+        .eq('id', r.id)
+      await fetchAll()
     }
     setEditingValue(null)
   }
 
-  const activeFiltersCount = Object.values(filters).filter(Boolean).length
+  async function handleDelete(r: UnifiedRecord) {
+    if (!confirm('Excluir esta ficha? Esta ação não pode ser desfeita.')) return
+    const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
+    await (supabase.from(table) as any).delete().eq('id', r.id)
+    await fetchAll()
+  }
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Fichas Anestésicas</h1>
-          <p className="text-sm text-slate-500">{fichas.length} ficha{fichas.length !== 1 ? 's' : ''} encontrada{fichas.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-xl font-bold text-slate-900">Fichas</h1>
+          <p className="text-sm text-slate-500">{filtered.length} registro{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}</p>
         </div>
         <Link href="/app/nova-ficha" className="btn-primary flex items-center gap-2 text-sm">
           <Plus className="w-4 h-4" /> Nova Ficha
         </Link>
       </div>
 
-      {/* Search + Filter Bar */}
+      {/* Tipo rápido */}
+      <div className="flex gap-2 mb-4">
+        {[
+          { value: 'all', label: 'Todas' },
+          { value: 'anesthesia', label: '🫁 Anestésicas' },
+          { value: 'consultation', label: '🩺 Pré-Anestésicas' },
+        ].map(opt => (
+          <button key={opt.value}
+            onClick={() => setFilterType(opt.value as any)}
+            className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
+              filterType === opt.value
+                ? 'bg-primary-700 text-white border-primary-700'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            }`}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Search + Filter */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            className="form-input pl-9"
-            placeholder="Buscar por nome do paciente..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <input type="text" className="form-input pl-9" placeholder="Buscar por nome do paciente..."
+            value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`btn-secondary flex items-center gap-2 text-sm relative ${showFilters ? 'border-primary-400' : ''}`}
-        >
-          <Filter className="w-4 h-4" />
-          Filtros
+        <button onClick={() => setShowFilters(!showFilters)}
+          className={`btn-secondary flex items-center gap-2 text-sm relative ${showFilters ? 'border-primary-400' : ''}`}>
+          <Filter className="w-4 h-4" /> Filtros
           {activeFiltersCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary-700 text-white text-xs rounded-full flex items-center justify-center">
               {activeFiltersCount}
@@ -101,58 +215,45 @@ export default function FichasPage() {
       {showFilters && (
         <div className="card p-4 mb-4 grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in">
           <div>
-            <label className="form-label">CPF</label>
-            <input type="text" className="form-input text-sm font-mono" placeholder="000.000.000-00"
-              onChange={e => setFilter('patient_cpf', e.target.value)} />
-          </div>
-          <div>
             <label className="form-label">Instituição</label>
-            <select className="form-select text-sm" onChange={e => setFilter('institution_id', e.target.value)}>
+            <select className="form-select text-sm" value={filterInstitution} onChange={e => setFilterInstitution(e.target.value)}>
               <option value="">Todas</option>
               {instituicoes.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="form-label">Tipo de Anestesia</label>
-            <select className="form-select text-sm" onChange={e => setFilter('anesthesia_type', e.target.value)}>
+            <label className="form-label">Plano</label>
+            <select className="form-select text-sm" value={filterPlan} onChange={e => setFilterPlan(e.target.value)}>
               <option value="">Todos</option>
-              {ANESTHESIA_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              {planos.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <div>
             <label className="form-label">Pagamento</label>
-            <select className="form-select text-sm"
-              onChange={e => {
-                const v = e.target.value
-                setFilter('is_paid', v === 'paid' ? true : v === 'unpaid' ? false : undefined)
-              }}>
+            <select className="form-select text-sm" value={filterPaid} onChange={e => setFilterPaid(e.target.value)}>
               <option value="">Todos</option>
               <option value="paid">Pago</option>
               <option value="unpaid">Pendente</option>
             </select>
           </div>
           <div>
-            <label className="form-label">Data Inicial</label>
-            <input type="date" className="form-input text-sm" onChange={e => setFilter('date_from', e.target.value)} />
-          </div>
-          <div>
-            <label className="form-label">Data Final</label>
-            <input type="date" className="form-input text-sm" onChange={e => setFilter('date_to', e.target.value)} />
-          </div>
-          <div>
             <label className="form-label">Glosa</label>
-            <select className="form-select text-sm"
-              onChange={e => {
-                const v = e.target.value
-                setFilter('has_glosa', v === 'yes' ? true : v === 'no' ? false : undefined)
-              }}>
+            <select className="form-select text-sm" value={filterGlosa} onChange={e => setFilterGlosa(e.target.value)}>
               <option value="">Todas</option>
               <option value="yes">Com glosa</option>
               <option value="no">Sem glosa</option>
             </select>
           </div>
-          <div className="flex items-end">
-            <button onClick={() => { setFilters({}); setShowFilters(false) }}
+          <div>
+            <label className="form-label">Data Inicial</label>
+            <input type="date" className="form-input text-sm" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} />
+          </div>
+          <div>
+            <label className="form-label">Data Final</label>
+            <input type="date" className="form-input text-sm" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} />
+          </div>
+          <div className="flex items-end col-span-2 lg:col-span-2">
+            <button onClick={() => { setFilterType('all'); setFilterInstitution(''); setFilterPlan(''); setFilterPaid(''); setFilterGlosa(''); setFilterDateFrom(''); setFilterDateTo(''); setShowFilters(false) }}
               className="btn-secondary w-full text-sm flex items-center justify-center gap-1">
               <X className="w-3 h-3" /> Limpar filtros
             </button>
@@ -163,7 +264,7 @@ export default function FichasPage() {
       {/* Table */}
       {loading ? (
         <div className="card p-12 text-center text-slate-400">Carregando fichas...</div>
-      ) : fichas.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-slate-400 mb-4">Nenhuma ficha encontrada</p>
           <Link href="/app/nova-ficha" className="btn-primary inline-flex items-center gap-2 text-sm">
@@ -177,96 +278,92 @@ export default function FichasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {['Data', 'Paciente', 'Cirurgia', 'Instituição', 'Plano', 'Anestesia', 'Valor', 'Status', 'Ações'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+                  {['Tipo', 'Data', 'Paciente', 'Cirurgia', 'Instituição', 'Plano', 'Valor', 'Status', 'Ações'].map(h => (
+                    <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {fichas.map(ficha => {
-                  const isUpdating = updatingId === ficha.id
-                  const isEditingVal = editingValue?.id === ficha.id
+                {filtered.map(r => {
+                  const isUpdating = updatingId === r.id
+                  const isEditingVal = editingValue?.id === r.id
                   return (
-                    <tr key={ficha.id} className="hover:bg-slate-50 transition-colors group">
-                      <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">
-                        {formatDate(ficha.procedure_date)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">{ficha.patient_name}</div>
-                        {ficha.patient_cpf && <div className="text-xs text-slate-400 font-mono">{ficha.patient_cpf}</div>}
-                      </td>
-                      <td className="px-4 py-3 text-slate-600 max-w-[160px] truncate">{ficha.surgery_name}</td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">{(ficha as any).institutions?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">{(ficha as any).insurance_plans?.name ?? '—'}</td>
-                      <td className="px-4 py-3">
-                        <span className="badge-neutral">
-                          {ANESTHESIA_TYPES.find(t => t.value === ficha.anesthesia_type)?.label ?? ficha.anesthesia_type}
-                        </span>
-                      </td>
-
-                      {/* VALOR — editável inline */}
-                      <td className="px-4 py-3">
-                        {isEditingVal ? (
-                          <input
-                            type="text"
-                            className="w-24 text-xs font-mono border border-primary-400 rounded px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-400"
-                            value={editingValue.value}
-                            onChange={e => setEditingValue({ id: ficha.id, value: e.target.value })}
-                            onBlur={() => saveValue(ficha.id)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') saveValue(ficha.id)
-                              if (e.key === 'Escape') setEditingValue(null)
-                            }}
-                            autoFocus
-                          />
+                    <tr key={r.id} className="hover:bg-slate-50 transition-colors group">
+                      <td className="px-3 py-3">
+                        {r.type === 'anesthesia' ? (
+                          <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                            <ClipboardList className="w-3 h-3" /> Anest.
+                          </span>
                         ) : (
-                          <span
-                            className="font-mono text-xs text-slate-700 cursor-pointer hover:text-primary-600 hover:underline"
+                          <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                            <Stethoscope className="w-3 h-3" /> Pré-Anest.
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">
+                        {formatDate(r.procedure_date)}
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="font-medium text-slate-900">{r.patient_name}</div>
+                        {r.patient_cpf && <div className="text-xs text-slate-400 font-mono">{r.patient_cpf}</div>}
+                      </td>
+                      <td className="px-3 py-3 text-slate-600 max-w-[140px] truncate text-xs">{r.surgery_name ?? '—'}</td>
+                      <td className="px-3 py-3 text-slate-500 text-xs">{r.institution_name ?? '—'}</td>
+                      <td className="px-3 py-3 text-slate-500 text-xs">{r.plan_name ?? '—'}</td>
+
+                      {/* VALOR editável */}
+                      <td className="px-3 py-3">
+                        {isEditingVal ? (
+                          <input type="text"
+                            className="w-24 text-xs font-mono border border-primary-400 rounded px-1.5 py-0.5 outline-none"
+                            value={editingValue.value}
+                            onChange={e => setEditingValue({ id: r.id, type: r.type, value: e.target.value })}
+                            onBlur={() => saveValue(r)}
+                            onKeyDown={e => { if (e.key === 'Enter') saveValue(r); if (e.key === 'Escape') setEditingValue(null) }}
+                            autoFocus />
+                        ) : (
+                          <span className="font-mono text-xs text-slate-700 cursor-pointer hover:text-primary-600 hover:underline"
                             title="Clique para editar"
-                            onClick={() => setEditingValue({ id: ficha.id, value: String(ficha.surgery_value ?? '') })}
-                          >
-                            {formatCurrency(ficha.surgery_value)}
+                            onClick={() => setEditingValue({ id: r.id, type: r.type, value: String(r.surgery_value ?? '') })}>
+                            {formatCurrency(r.surgery_value)}
                           </span>
                         )}
                       </td>
 
                       {/* STATUS */}
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => togglePagamento(ficha.id, ficha.is_paid)}
-                          disabled={isUpdating}
-                          title={ficha.is_paid ? 'Clique para marcar como Pendente' : 'Clique para marcar como Pago'}
-                        >
+                      <td className="px-3 py-3">
+                        <button onClick={() => togglePagamento(r)} disabled={isUpdating}
+                          title={r.is_paid ? 'Clique para Pendente' : 'Clique para Pago'}>
                           {isUpdating ? (
                             <span className="text-xs text-slate-400 animate-pulse">...</span>
-                          ) : ficha.is_paid ? (
-                            <span className="badge-success flex items-center gap-1 cursor-pointer hover:bg-emerald-200 transition-colors">
+                          ) : r.is_paid ? (
+                            <span className="badge-success flex items-center gap-1 cursor-pointer">
                               <CheckCircle2 className="w-3 h-3" /> Pago
                             </span>
-                          ) : ficha.has_glosa ? (
-                            <span className="badge-danger flex items-center gap-1 cursor-pointer hover:bg-red-200 transition-colors">
+                          ) : r.has_glosa ? (
+                            <span className="badge-danger flex items-center gap-1 cursor-pointer">
                               <AlertTriangle className="w-3 h-3" /> Glosa
                             </span>
                           ) : (
-                            <span className="badge-warning flex items-center gap-1 cursor-pointer hover:bg-amber-200 transition-colors">
+                            <span className="badge-warning flex items-center gap-1 cursor-pointer">
                               <Clock className="w-3 h-3" /> Pendente
                             </span>
                           )}
                         </button>
                       </td>
 
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={`/app/fichas/${ficha.id}`} className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600" title="Ver">
+                          <Link href={r.view_href} className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600" title="Ver">
                             <Eye className="w-3.5 h-3.5" />
                           </Link>
-                          <Link href={`/app/fichas/${ficha.id}/editar`} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700" title="Editar">
+                          <Link href={r.edit_href} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700" title="Editar">
                             <Edit2 className="w-3.5 h-3.5" />
                           </Link>
-                          <Link href={`/print/${ficha.id}`} target="_blank" className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700" title="Imprimir">
+                          <Link href={r.print_href} target="_blank" className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700" title="Imprimir">
                             <Printer className="w-3.5 h-3.5" />
                           </Link>
-                          <button onClick={() => handleDelete(ficha.id)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500" title="Excluir">
+                          <button onClick={() => handleDelete(r)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500" title="Excluir">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -280,24 +377,27 @@ export default function FichasPage() {
 
           {/* Mobile Cards */}
           <div className="space-y-3 md:hidden">
-            {fichas.map(ficha => (
-              <div key={ficha.id} className="card p-4">
+            {filtered.map(r => (
+              <div key={r.id} className="card p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="font-semibold text-slate-900">{ficha.patient_name}</p>
-                    <p className="text-xs text-slate-500">{ficha.surgery_name}</p>
-                    <p className="text-xs text-slate-400">{(ficha as any).insurance_plans?.name ?? ''}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      {r.type === 'anesthesia' ? (
+                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Anestésica</span>
+                      ) : (
+                        <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Pré-Anestésica</span>
+                      )}
+                    </div>
+                    <p className="font-semibold text-slate-900">{r.patient_name}</p>
+                    <p className="text-xs text-slate-500">{r.surgery_name ?? '—'}</p>
+                    <p className="text-xs text-slate-400">{r.plan_name ?? ''}</p>
                   </div>
-                  <button
-                    onClick={() => togglePagamento(ficha.id, ficha.is_paid)}
-                    disabled={updatingId === ficha.id}
-                    className="flex-shrink-0"
-                  >
-                    {updatingId === ficha.id ? (
+                  <button onClick={() => togglePagamento(r)} disabled={updatingId === r.id} className="flex-shrink-0">
+                    {updatingId === r.id ? (
                       <span className="text-xs text-slate-400">...</span>
-                    ) : ficha.is_paid ? (
+                    ) : r.is_paid ? (
                       <span className="badge-success flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Pago</span>
-                    ) : ficha.has_glosa ? (
+                    ) : r.has_glosa ? (
                       <span className="badge-danger flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Glosa</span>
                     ) : (
                       <span className="badge-warning flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</span>
@@ -305,13 +405,13 @@ export default function FichasPage() {
                   </button>
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(ficha.procedure_date)}</span>
-                  <span className="font-mono font-medium text-slate-600">{formatCurrency(ficha.surgery_value)}</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(r.procedure_date)}</span>
+                  <span className="font-mono font-medium text-slate-600">{formatCurrency(r.surgery_value)}</span>
                 </div>
                 <div className="flex gap-2">
-                  <Link href={`/app/fichas/${ficha.id}`} className="flex-1 btn-secondary text-xs text-center py-1.5">Ver</Link>
-                  <Link href={`/app/fichas/${ficha.id}/editar`} className="flex-1 btn-secondary text-xs text-center py-1.5">Editar</Link>
-                  <Link href={`/print/${ficha.id}`} target="_blank" className="flex-1 btn-secondary text-xs text-center py-1.5">Imprimir</Link>
+                  <Link href={r.view_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Ver</Link>
+                  <Link href={r.edit_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Editar</Link>
+                  <Link href={r.print_href} target="_blank" className="flex-1 btn-secondary text-xs text-center py-1.5">Imprimir</Link>
                 </div>
               </div>
             ))}
