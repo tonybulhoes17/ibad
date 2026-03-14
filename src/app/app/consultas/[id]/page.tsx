@@ -5,13 +5,13 @@ export default async function ViewConsultaPage({ params }: { params: { id: strin
 
   const { data, error } = await supabase
     .from('consultation_records')
-    .select('*, institutions(*)')
+    .select('*, institutions(*), insurance_plans(*)')
     .eq('id', params.id)
     .maybeSingle()
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>Teste relacionamento institutions</h1>
+      <h1>Teste relacionamento institutions + insurance_plans</h1>
       <p><strong>ID:</strong> {params.id}</p>
 
       <h2>Error</h2>
