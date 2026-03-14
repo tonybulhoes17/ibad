@@ -64,11 +64,11 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
         ref={ref}
         className="print-only"
         style={{
-          width: '190mm',
-          height: '255mm',
-          margin: '-9mm auto 0',
+          width: '210mm',
+          height: '297mm',
+          margin: '0 auto',
           background: '#fff',
-          padding: '4mm 8mm',
+          padding: '8mm 10mm',
           boxSizing: 'border-box',
           color: '#1E293B',
           overflow: 'hidden',
