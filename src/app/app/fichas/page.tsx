@@ -161,6 +161,85 @@ export default function FichasPage() {
     await fetchAll()
   }
 
+  function handlePrintList() {
+    const win = window.open('', '_blank')
+    if (!win) return
+
+    const totalValue = filtered.reduce((s, r) => s + (r.surgery_value ?? 0), 0)
+
+    const rows = filtered.map((r, i) => `
+      <tr style="background:${i % 2 === 0 ? '#fff' : '#F8FAFC'}">
+        <td>${r.type === 'anesthesia' ? 'Anest.' : 'Pré-Anest.'}</td>
+        <td>${formatDate(r.procedure_date)}</td>
+        <td>
+          <strong>${r.patient_name}</strong>
+          ${r.patient_cpf ? `<br/><small>${r.patient_cpf}</small>` : ''}
+        </td>
+        <td>${r.surgery_name ?? '—'}</td>
+        <td>${r.institution_name ?? '—'}</td>
+        <td>${r.plan_name ?? '—'}</td>
+        <td style="text-align:right">${formatCurrency(r.surgery_value)}</td>
+        <td style="text-align:center">
+          <span style="
+            padding:2px 7px;border-radius:20px;font-size:9px;font-weight:bold;
+            background:${r.is_paid ? '#ECFDF5' : r.has_glosa ? '#FEF2F2' : '#FFFBEB'};
+            color:${r.is_paid ? '#065F46' : r.has_glosa ? '#991B1B' : '#92400E'};
+          ">${r.is_paid ? 'Pago' : r.has_glosa ? 'Glosa' : 'Pendente'}</span>
+        </td>
+      </tr>
+    `).join('')
+
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>Lista de Fichas — IBAD</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: Arial, sans-serif; font-size: 10px; color: #1E293B; padding: 12mm; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1A56A0; padding-bottom: 8px; margin-bottom: 10px; }
+          h1 { font-size: 16px; color: #1A56A0; margin-bottom: 2px; }
+          .sub { font-size: 9px; color: #64748B; }
+          .ibad { font-size: 9px; color: #94A3B8; text-align: right; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+          th { background: #1A56A0; color: white; text-align: left; padding: 5px 7px; font-size: 8.5px; text-transform: uppercase; }
+          th:last-child, th:nth-child(7) { text-align: center; }
+          td { padding: 5px 7px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; font-size: 9.5px; }
+          small { color: #94A3B8; font-size: 8px; }
+          .footer { display: flex; justify-content: space-between; font-size: 8.5px; color: #94A3B8; margin-top: 8px; border-top: 1px solid #E2E8F0; padding-top: 6px; }
+          .total { font-size: 10px; font-weight: bold; color: #1E293B; }
+          @media print { @page { size: A4 landscape; margin: 10mm; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <h1>Lista de Fichas — IBAD</h1>
+            <div class="sub">${filtered.length} registro${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}</div>
+          </div>
+          <div class="ibad">IBAD — Sistema de Ficha Anestésica<br/>Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th><th>Data</th><th>Paciente</th><th>Cirurgia</th>
+              <th>Instituição</th><th>Plano</th><th style="text-align:right">Valor</th><th style="text-align:center">Status</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="footer">
+          <span>Total de registros: <strong>${filtered.length}</strong></span>
+          <span class="total">Valor total: ${formatCurrency(totalValue)}</span>
+        </div>
+        <script>window.onload = () => { window.print(); }<\/script>
+      </body>
+      </html>
+    `)
+    win.document.close()
+  }
+
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -169,9 +248,17 @@ export default function FichasPage() {
           <h1 className="text-xl font-bold text-slate-900">Fichas</h1>
           <p className="text-sm text-slate-500">{filtered.length} registro{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}</p>
         </div>
-        <Link href="/app/nova-ficha" className="btn-primary flex items-center gap-2 text-sm">
-          <Plus className="w-4 h-4" /> Nova Ficha
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrintList}
+            className="btn-secondary flex items-center gap-2 text-sm"
+            title="Imprimir lista filtrada">
+            <Printer className="w-4 h-4" /> Imprimir Lista
+          </button>
+          <Link href="/app/nova-ficha" className="btn-primary flex items-center gap-2 text-sm">
+            <Plus className="w-4 h-4" /> Nova Ficha
+          </Link>
+        </div>
       </div>
 
       {/* Tipo rápido */}
