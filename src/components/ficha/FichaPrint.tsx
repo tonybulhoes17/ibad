@@ -28,15 +28,14 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
     return (
       <div
         ref={ref}
-        className="a4-preview print-only"
+        className="print-only"
         style={{
-          width: '210mm',
-          minHeight: '297mm',
-          margin: '0 auto',
-          padding: '10mm',
-          boxSizing: 'border-box',
           fontFamily: 'Arial, sans-serif',
-          background: 'white'
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
+          margin: 0,
+          padding: 0,
         }}
       >
 
