@@ -26,7 +26,19 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
     const modalityLabel = MODALITIES.find(m => m.value === record.modality)?.label ?? record.modality
 
     return (
-      <div ref={ref} className="a4-preview print-only" style={{ fontFamily: 'Arial, sans-serif', width: '110%' }}>
+      <div
+        ref={ref}
+        className="a4-preview print-only"
+        style={{
+          width: '210mm',
+          minHeight: '297mm',
+          margin: '0 auto',
+          padding: '10mm',
+          boxSizing: 'border-box',
+          fontFamily: 'Arial, sans-serif',
+          background: 'white'
+        }}
+      >
 
         {/* ── CABEÇALHO */}
         <div style={{
