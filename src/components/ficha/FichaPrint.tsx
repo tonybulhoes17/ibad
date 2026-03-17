@@ -119,13 +119,45 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
         </table>
 
         {/* ── ORGANOGRAMA */}
-        <div style={{ border: '1px solid #E2E8F0', borderRadius: 4, marginBottom: 6, padding: 4, overflow: 'hidden' }}>
-          <div style={{ fontSize: 8, fontWeight: 'bold', color: '#64748B', marginBottom: 4, letterSpacing: 0.5 }}>
+        <div
+          style={{
+            border: '1px solid #E2E8F0',
+            borderRadius: 4,
+            marginBottom: 6,
+            padding: 4,
+            overflow: 'hidden'
+          }}
+        >
+          <div
+            style={{
+              fontSize: 8,
+              fontWeight: 'bold',
+              color: '#64748B',
+              marginBottom: 4,
+              letterSpacing: 0.5
+            }}
+          >
             ORGANOGRAMA ANESTÉSICO
           </div>
+
           {record.timeline_data && (
-            <div style={{ position: 'relative', height: '560px' }}>
-              <div style={{ transform: 'scale(0.95)', transformOrigin: 'top left', width: '115%', position: 'absolute', top: 0, left: 0 }}>
+            <div
+              style={{
+                position: 'relative',
+                height: '430px', // ↓ reduzido pra evitar segunda página
+                overflow: 'hidden'
+              }}
+            >
+              <div
+                style={{
+                  transform: 'scale(0.92)', // ↓ leve redução (não achata)
+                  transformOrigin: 'top left',
+                  width: '108%', // ↑ compensa e aumenta largura útil
+                  position: 'absolute',
+                  top: 0,
+                  left: 0
+                }}
+              >
                 <Organograma data={record.timeline_data} mode="print" />
               </div>
             </div>
