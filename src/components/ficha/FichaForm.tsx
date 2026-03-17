@@ -277,7 +277,7 @@ export function FichaForm({ initialData, recordId, mode = 'create' }: FichaFormP
             <h2 className="section-header">Descrição da Anestesia</h2>
             <textarea
               className="form-textarea w-full"
-              style={{ minheight: '220px' }}
+              style={{ minHeight: '220px' }}
               placeholder="Descreva o procedimento anestésico..."
               value={form.description ?? ''}
               onChange={e => set('description', e.target.value || null)}
