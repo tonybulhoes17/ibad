@@ -114,7 +114,7 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
           </div>
           {record.timeline_data && (
             <div style={{ position: 'relative', height: '560px' }}>
-              <div style={{ transform: 'scale(0.95)', transformOrigin: 'top left', width: '105%', position: 'absolute', top: 0, left: 0 }}>
+              <div style={{ transform: 'scale(0.95)', transformOrigin: 'top left', width: '115%', position: 'absolute', top: 0, left: 0 }}>
                 <Organograma data={record.timeline_data} mode="print" />
               </div>
             </div>
