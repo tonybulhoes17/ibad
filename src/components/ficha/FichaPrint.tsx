@@ -260,7 +260,7 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
               <div
                 style={{
                   width: '100%',
-                  height: '128mm',
+                  height: '118mm',
                   overflow: 'hidden',
                   position: 'relative',
                 }}
