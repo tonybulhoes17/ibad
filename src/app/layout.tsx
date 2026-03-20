@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: 'IBAD — Ficha Anestésica',
   description: 'Sistema profissional de ficha anestésica digital para anestesiologistas',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icons/icon-192.png',
+    apple: '/icons/icon-192.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
