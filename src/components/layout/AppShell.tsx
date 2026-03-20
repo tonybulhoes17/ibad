@@ -9,7 +9,7 @@ import { getInitials } from '@/lib/utils'
 import {
   LayoutDashboard, FileText, Building2, Shield,
   BookOpen, DollarSign, User, LogOut, Menu, X,
-  Plus, ChevronRight, Stethoscope
+  Plus, ChevronRight, Stethoscope, Users
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -90,6 +90,29 @@ export function AppShell({ profile, children }: AppShellProps) {
             </Link>
           )
         })}
+
+        {/* Separador Grupos */}
+        <div className="pt-2 pb-1 px-3">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Grupos</p>
+        </div>
+
+        <Link
+          href="/grupo/criar"
+          onClick={() => setSidebarOpen(false)}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors group',
+            pathname === '/grupo/criar'
+              ? 'bg-primary-50 text-primary-700 font-medium'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          )}
+        >
+          <Users className={cn(
+            'w-4 h-4 flex-shrink-0',
+            pathname === '/grupo/criar' ? 'text-primary-700' : 'text-slate-400 group-hover:text-slate-600'
+          )} />
+          Criar / Acessar Grupo
+          {pathname === '/grupo/criar' && <ChevronRight className="w-3 h-3 ml-auto text-primary-400" />}
+        </Link>
       </nav>
 
       {/* Perfil + Logout */}
