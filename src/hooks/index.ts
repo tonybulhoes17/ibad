@@ -221,12 +221,12 @@ export function useSaveFicha() {
   const supabase = createClient()
   const [saving, setSaving] = useState(false)
 
-  const save = async (data: Omit<AnesthesiaRecord, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+  const save = async (data: Omit<AnesthesiaRecord, 'id' | 'user_id' | 'created_at' | 'updated_at'>, group_id?: string | null) => {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { data: record, error } = await supabase
       .from('anesthesia_records')
-      .insert({ ...data, user_id: user!.id })
+      .insert({ ...data, user_id: user!.id, group_id: group_id ?? null })
       .select()
       .single()
     setSaving(false)

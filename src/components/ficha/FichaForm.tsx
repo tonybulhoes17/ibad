@@ -8,6 +8,7 @@ import type { AnesthesiaRecord, TimelineData } from '@/types/database.types'
 import { ANESTHESIA_TYPES, MODALITIES, DESTINATIONS, DEFAULT_TEMPLATES } from '@/constants/anesthesia'
 import { generateDefaultTimeline, formatDate } from '@/lib/utils'
 import { Save, Eye, Loader2, ChevronRight, ChevronLeft, Copy } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 
 type FormData = Omit<AnesthesiaRecord, 'id' | 'user_id' | 'created_at' | 'updated_at'>
 
@@ -26,6 +27,8 @@ export function FichaForm({ initialData, recordId, mode = 'create' }: FichaFormP
   const { getByType } = useTemplates()
   const { save, update, saving } = useSaveFicha()
   const [step, setStep] = useState(0)
+  const searchParams = useSearchParams()
+  const groupId = searchParams.get('group_id')
 
   const [form, setForm] = useState<FormData>({
     procedure_date: new Date().toISOString().slice(0, 10),
@@ -75,8 +78,11 @@ export function FichaForm({ initialData, recordId, mode = 'create' }: FichaFormP
       const { error } = await update(recordId, payload)
       if (!error) router.push(`/app/fichas/${recordId}`)
     } else {
-      const { record, error } = await save(payload)
-      if (!error && record) router.push(`/app/fichas/${record.id}`)
+      const { record, error } = await save(payload, groupId)
+      if (!error && record) {
+        const destino = groupId ? `/grupo/${groupId}/fichas` : `/app/fichas/${record.id}`
+        router.push(destino)
+      }
     }
   }
 

@@ -9,7 +9,7 @@ import { getInitials } from '@/lib/utils'
 import {
   LayoutDashboard, FileText, Building2, Shield,
   BookOpen, DollarSign, User, LogOut, Menu, X,
-  Plus, ChevronRight, Stethoscope, Users
+  Plus, ChevronRight, Stethoscope, Users, Ticket
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -21,6 +21,11 @@ const NAV_ITEMS = [
   { href: '/app/planos',       label: 'Planos de Saúde', icon: Shield },
   { href: '/app/modelos',      label: 'Modelos',         icon: BookOpen },
   { href: '/app/perfil',       label: 'Perfil',          icon: User },
+]
+
+const GRUPO_ITEMS = [
+  { href: '/grupo/criar',   label: 'Criar Grupo',    icon: Users },
+  { href: '/app/convite',   label: 'Usar Convite',   icon: Ticket },
 ]
 
 interface AppShellProps {
@@ -65,7 +70,7 @@ export function AppShell({ profile, children }: AppShellProps) {
         </Link>
       </div>
 
-      {/* Nav */}
+      {/* Nav principal */}
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
@@ -92,27 +97,33 @@ export function AppShell({ profile, children }: AppShellProps) {
         })}
 
         {/* Separador Grupos */}
-        <div className="pt-2 pb-1 px-3">
+        <div className="pt-3 pb-1 px-3">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Grupos</p>
         </div>
 
-        <Link
-          href="/grupo/criar"
-          onClick={() => setSidebarOpen(false)}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors group',
-            pathname === '/grupo/criar'
-              ? 'bg-primary-50 text-primary-700 font-medium'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-          )}
-        >
-          <Users className={cn(
-            'w-4 h-4 flex-shrink-0',
-            pathname === '/grupo/criar' ? 'text-primary-700' : 'text-slate-400 group-hover:text-slate-600'
-          )} />
-          Criar / Acessar Grupo
-          {pathname === '/grupo/criar' && <ChevronRight className="w-3 h-3 ml-auto text-primary-400" />}
-        </Link>
+        {GRUPO_ITEMS.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setSidebarOpen(false)}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors group',
+                active
+                  ? 'bg-primary-50 text-primary-700 font-medium'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              )}
+            >
+              <Icon className={cn(
+                'w-4 h-4 flex-shrink-0',
+                active ? 'text-primary-700' : 'text-slate-400 group-hover:text-slate-600'
+              )} />
+              {label}
+              {active && <ChevronRight className="w-3 h-3 ml-auto text-primary-400" />}
+            </Link>
+          )
+        })}
       </nav>
 
       {/* Perfil + Logout */}

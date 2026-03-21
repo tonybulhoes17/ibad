@@ -6,6 +6,7 @@ import { useInstituicoes, usePlanos } from '@/hooks'
 import { createClient } from '@/lib/supabase/client'
 import { ANESTHESIA_TYPES } from '@/constants/anesthesia'
 import { Save, Loader2, ChevronRight, ChevronLeft, Search, X, AlertTriangle, Copy } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 
 const STEPS = ['Identificação', 'Histórico Clínico', 'Exame Físico', 'Exames & Conclusão', 'Administrativo']
 
@@ -127,6 +128,9 @@ export function ConsultaForm({ initialData, consultaId, mode = 'create' }: Consu
   // Alertas
   const showMonjaroAlert = checkMonjaro(form.medications)
   const showCosmeticAlert = checkCosmetic(form.physical_exam)
+
+  const searchParams = useSearchParams()
+  const groupId = searchParams.get('group_id')
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -296,6 +300,7 @@ export function ConsultaForm({ initialData, consultaId, mode = 'create' }: Consu
       insurance_plan_id: form.insurance_plan_id || null,
       is_paid: form.is_paid,
       has_glosa: form.has_glosa,
+      group_id: groupId ?? null,
     }
 
     if (mode === 'edit' && consultaId) {
@@ -304,7 +309,10 @@ export function ConsultaForm({ initialData, consultaId, mode = 'create' }: Consu
     } else {
       const { data } = await (supabase.from('consultation_records') as any)
         .insert(payload).select().single()
-      if (data) router.push(`/app/consultas/${data.id}`)
+      if (data) {
+        const destino = groupId ? `/grupo/${groupId}/fichas` : `/app/consultas/${data.id}`
+        router.push(destino)
+      }
     }
     setSaving(false)
   }
