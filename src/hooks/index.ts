@@ -35,7 +35,7 @@ export function useProfile() {
 }
 
 // ============================================================
-// useInstituicoes
+// useInstituicoes — somente individuais (group_id null)
 // ============================================================
 export function useInstituicoes() {
   const [instituicoes, setInstituicoes] = useState<Institution[]>([])
@@ -47,6 +47,7 @@ export function useInstituicoes() {
       .from('institutions')
       .select('*')
       .eq('active', true)
+      .is('group_id', null)
       .order('name')
     setInstituicoes(data ?? [])
     setLoading(false)
@@ -77,7 +78,7 @@ export function useInstituicoes() {
 }
 
 // ============================================================
-// usePlanos
+// usePlanos — somente individuais (group_id null)
 // ============================================================
 export function usePlanos() {
   const [planos, setPlanos] = useState<InsurancePlan[]>([])
@@ -89,6 +90,7 @@ export function usePlanos() {
       .from('insurance_plans')
       .select('*')
       .eq('active', true)
+      .is('group_id', null)
       .order('name')
     setPlanos(data ?? [])
     setLoading(false)

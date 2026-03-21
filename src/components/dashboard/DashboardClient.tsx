@@ -48,6 +48,11 @@ export function DashboardClient() {
         .eq('user_id', user.id)
         .is('group_id', null)
         .order('procedure_date', { ascending: false }),
+      supabase
+        .from('profiles')
+        .select('full_name, crm')
+        .eq('id', user.id)
+        .single(),
     ])
 
     const aList: Record[] = (anesthesia ?? []).map((r: any) => ({
