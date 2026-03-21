@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { getInitials } from '@/lib/utils'
 import {
   LayoutDashboard, FileText, DollarSign, Users,
-  LogOut, Menu, X, Plus, ChevronRight, Stethoscope, ArrowLeft
+  LogOut, Menu, X, Plus, ChevronRight, Stethoscope, ArrowLeft,
+  Building2, Shield
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -30,7 +31,6 @@ export default function GrupoLayout({ children }: { children: React.ReactNode })
   const [profile, setProfile] = useState<{ full_name: string; crm: string } | null>(null)
 
   useEffect(() => {
-    // Lê contexto do grupo salvo no login
     const grupo_id = localStorage.getItem('grupo_id')
     const grupo_nome = localStorage.getItem('grupo_nome')
     const grupo_papel = localStorage.getItem('grupo_papel') as GrupoContext['grupo_papel']
@@ -43,7 +43,6 @@ export default function GrupoLayout({ children }: { children: React.ReactNode })
 
     setCtx({ grupo_id, grupo_nome: grupo_nome ?? '', grupo_papel, grupo_permissao_consolidado })
 
-    // Busca perfil
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
       supabase.from('profiles').select('full_name, crm').eq('id', user.id).single()
@@ -65,10 +64,12 @@ export default function GrupoLayout({ children }: { children: React.ReactNode })
   const podeVerConsolidado = isAdmin || ctx?.grupo_permissao_consolidado
 
   const NAV_ITEMS = [
-    { href: `/grupo/${grupoId}/dashboard`, label: 'Dashboard', icon: LayoutDashboard, show: true },
-    { href: `/grupo/${grupoId}/fichas`, label: 'Fichas', icon: FileText, show: true },
-    { href: `/grupo/${grupoId}/financeiro`, label: 'Financeiro', icon: DollarSign, show: podeVerConsolidado },
-    { href: `/grupo/${grupoId}/membros`, label: 'Membros', icon: Users, show: isAdmin },
+    { href: `/grupo/${grupoId}/dashboard`,     label: 'Dashboard',    icon: LayoutDashboard, show: true },
+    { href: `/grupo/${grupoId}/fichas`,         label: 'Fichas',       icon: FileText,        show: true },
+    { href: `/grupo/${grupoId}/financeiro`,     label: 'Financeiro',   icon: DollarSign,      show: podeVerConsolidado },
+    { href: `/grupo/${grupoId}/instituicoes`,   label: 'Instituições', icon: Building2,       show: isAdmin },
+    { href: `/grupo/${grupoId}/planos`,         label: 'Planos',       icon: Shield,          show: isAdmin },
+    { href: `/grupo/${grupoId}/membros`,        label: 'Membros',      icon: Users,           show: isAdmin },
   ].filter(item => item.show)
 
   const SidebarContent = () => (

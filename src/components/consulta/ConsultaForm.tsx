@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useInstituicoes, usePlanos } from '@/hooks'
+import { useGrupoInstituicoes, useGrupoPlanos } from '@/hooks/grupo'
 import { createClient } from '@/lib/supabase/client'
 import { ANESTHESIA_TYPES } from '@/constants/anesthesia'
 import { Save, Loader2, ChevronRight, ChevronLeft, Search, X, AlertTriangle, Copy } from 'lucide-react'
@@ -104,13 +105,20 @@ interface ConsultaFormProps {
   initialData?: Partial<FormData>
   consultaId?: string
   mode?: 'create' | 'edit'
+  groupId?: string | null
 }
 
-export function ConsultaForm({ initialData, consultaId, mode = 'create' }: ConsultaFormProps) {
+export function ConsultaForm({ initialData, consultaId, mode = 'create', groupId: groupIdProp }: ConsultaFormProps) {
   const router = useRouter()
   const supabase = createClient()
-  const { instituicoes } = useInstituicoes()
-  const { planos } = usePlanos()
+  const searchParams = useSearchParams()
+  const groupId = groupIdProp ?? searchParams.get('group_id')
+  const { instituicoes: instituicoesInd } = useInstituicoes()
+  const { planos: planosInd } = usePlanos()
+  const { instituicoes: instituicoesGrupo } = useGrupoInstituicoes(groupId ?? '')
+  const { planos: planosGrupo } = useGrupoPlanos(groupId ?? '')
+  const instituicoes = groupId ? instituicoesGrupo : instituicoesInd
+  const planos = groupId ? planosGrupo : planosInd
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<FormData>({ ...initial, ...initialData })
@@ -129,9 +137,7 @@ export function ConsultaForm({ initialData, consultaId, mode = 'create' }: Consu
   const showMonjaroAlert = checkMonjaro(form.medications)
   const showCosmeticAlert = checkCosmetic(form.physical_exam)
 
-  const searchParams = useSearchParams()
-  const groupId = searchParams.get('group_id')
-
+  
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(prev => ({ ...prev, [key]: value }))
   }

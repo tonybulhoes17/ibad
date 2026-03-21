@@ -31,13 +31,15 @@ export default function FinanceiroPage() {
     const [{ data: anesthesia }, { data: consultations }] = await Promise.all([
       supabase
         .from('anesthesia_records')
-        .select('*, institutions(name), insurance_plans(name)')
+        .select('*, institutions(name)')
         .eq('user_id', user.id)
+        .is('group_id', null)
         .order('procedure_date', { ascending: false }),
       supabase
         .from('consultation_records')
-        .select('*, institutions(name), insurance_plans(name)')
+        .select('*, institutions(name)')
         .eq('user_id', user.id)
+        .is('group_id', null)
         .order('procedure_date', { ascending: false }),
     ])
 

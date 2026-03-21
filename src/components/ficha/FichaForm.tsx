@@ -1,9 +1,8 @@
 'use client'
-
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useInstituicoes, usePlanos, useTemplates, useSaveFicha } from '@/hooks'
-import { Organograma } from './Organograma'
+import { useGrupoInstituicoes, useGrupoPlanos } from '@/hooks/grupo'import { Organograma } from './Organograma'
 import type { AnesthesiaRecord, TimelineData } from '@/types/database.types'
 import { ANESTHESIA_TYPES, MODALITIES, DESTINATIONS, DEFAULT_TEMPLATES } from '@/constants/anesthesia'
 import { generateDefaultTimeline, formatDate } from '@/lib/utils'
@@ -18,17 +17,22 @@ interface FichaFormProps {
   initialData?: Partial<FormData>
   recordId?: string
   mode?: 'create' | 'edit'
+  groupId?: string | null
 }
 
-export function FichaForm({ initialData, recordId, mode = 'create' }: FichaFormProps) {
+export function FichaForm({ initialData, recordId, mode = 'create', groupId: groupIdProp }: FichaFormProps) {
   const router = useRouter()
-  const { instituicoes } = useInstituicoes()
-  const { planos } = usePlanos()
+  const searchParams = useSearchParams()
+  const groupId = groupIdProp ?? searchParams.get('group_id')
+  const { instituicoes: instituicoesInd } = useInstituicoes()
+  const { planos: planosInd } = usePlanos()
+  const { instituicoes: instituicoesGrupo } = useGrupoInstituicoes(groupId ?? '')
+  const { planos: planosGrupo } = useGrupoPlanos(groupId ?? '')
+  const instituicoes = groupId ? instituicoesGrupo : instituicoesInd
+  const planos = groupId ? planosGrupo : planosInd
   const { getByType } = useTemplates()
   const { save, update, saving } = useSaveFicha()
   const [step, setStep] = useState(0)
-  const searchParams = useSearchParams()
-  const groupId = searchParams.get('group_id')
 
   const [form, setForm] = useState<FormData>({
     procedure_date: new Date().toISOString().slice(0, 10),

@@ -62,11 +62,13 @@ export default function FichasPage() {
         .from('anesthesia_records')
         .select('*, institutions(name), insurance_plans(name)')
         .eq('user_id', user.id)
+        .is('group_id', null)
         .order('procedure_date', { ascending: false }),
       supabase
         .from('consultation_records')
         .select('*, institutions(name), insurance_plans(name)')
         .eq('user_id', user.id)
+        .is('group_id', null)
         .order('procedure_date', { ascending: false }),
     ])
 
