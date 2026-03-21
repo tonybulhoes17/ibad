@@ -17,7 +17,6 @@ export default function CriarGrupoPage() {
   const [nomeDisponivel, setNomeDisponivel] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Verifica disponibilidade do nome em tempo real
   async function checkNome(value: string) {
     setNome(value)
     setNomeDisponivel(null)
@@ -40,37 +39,58 @@ export default function CriarGrupoPage() {
     setLoading(true)
     setError(null)
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    // 1. Busca o usuário autenticado
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      setError('Sessão expirada. Faça login novamente.')
+      setLoading(false)
+      router.push('/auth/login')
+      return
+    }
 
-    // Cria o grupo
+    // 2. Cria o grupo
     const { data: grupo, error: grupoError } = await supabase
       .from('groups')
-      .insert({ nome: nome.trim(), cnpj: cnpj.trim() || null, criado_por: user.id })
-      .select('id')
+      .insert({
+        nome: nome.trim(),
+        cnpj: cnpj.trim() || null,
+        criado_por: user.id,
+      })
+      .select('id, nome')
       .single()
 
     if (grupoError || !grupo) {
-      setError('Erro ao criar o grupo. Tente novamente.')
+      console.error('Erro ao criar grupo:', grupoError)
+      setError(`Erro ao criar o grupo: ${grupoError?.message ?? 'desconhecido'}`)
       setLoading(false)
       return
     }
 
-    // Adiciona o criador como admin
-    await supabase.from('group_members').insert({
-      group_id: grupo.id,
-      user_id: user.id,
-      papel: 'admin',
-      permissao_consolidado: true,
-    })
+    // 3. Adiciona o criador como admin
+    const { error: membroError } = await supabase
+      .from('group_members')
+      .insert({
+        group_id: grupo.id,
+        user_id: user.id,
+        papel: 'admin',
+        permissao_consolidado: true,
+      })
 
-    // Salva contexto no localStorage e redireciona
+    if (membroError) {
+      console.error('Erro ao adicionar membro admin:', membroError)
+      // Mesmo com erro no membro, continua — admin pode ser adicionado depois
+      setError(`Grupo criado mas erro ao definir admin: ${membroError.message}`)
+      setLoading(false)
+      return
+    }
+
+    // 4. Salva contexto no localStorage e redireciona
     localStorage.setItem('grupo_id', grupo.id)
-    localStorage.setItem('grupo_nome', nome.trim())
+    localStorage.setItem('grupo_nome', grupo.nome)
     localStorage.setItem('grupo_papel', 'admin')
     localStorage.setItem('grupo_permissao_consolidado', 'true')
 
-    router.push(`/grupo/${grupo.id}/dashboard`)
+    router.push(`/grupo/${grupo.id}/membros`)
   }
 
   return (
@@ -85,9 +105,11 @@ export default function CriarGrupoPage() {
           <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
             <Users className="w-5 h-5 text-primary-700" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900">Criar Grupo</h1>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Criar Grupo</h1>
+            <p className="text-sm text-slate-500">Você será o administrador do grupo.</p>
+          </div>
         </div>
-        <p className="text-sm text-slate-500">Você será o administrador do grupo.</p>
       </div>
 
       {/* Card */}
@@ -111,7 +133,9 @@ export default function CriarGrupoPage() {
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 {checking && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
                 {!checking && nomeDisponivel === true && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-                {!checking && nomeDisponivel === false && <span className="text-red-500 text-xs font-medium">Indisponível</span>}
+                {!checking && nomeDisponivel === false && (
+                  <span className="text-red-500 text-xs font-medium">Indisponível</span>
+                )}
               </div>
             </div>
             {nomeDisponivel === false && (
@@ -127,7 +151,9 @@ export default function CriarGrupoPage() {
 
           {/* CNPJ (opcional) */}
           <div>
-            <label className="form-label">CNPJ <span className="text-slate-400 font-normal">(opcional)</span></label>
+            <label className="form-label">
+              CNPJ <span className="text-slate-400 font-normal">(opcional)</span>
+            </label>
             <input
               type="text"
               className="form-input font-mono"
@@ -147,7 +173,8 @@ export default function CriarGrupoPage() {
           <button
             type="submit"
             disabled={loading || !nomeDisponivel}
-            className="btn-primary w-full flex items-center justify-center gap-2 py-2.5">
+            className="btn-primary w-full flex items-center justify-center gap-2 py-2.5"
+          >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
             {loading ? 'Criando grupo...' : 'Criar Grupo'}
           </button>
