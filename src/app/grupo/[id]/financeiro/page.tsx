@@ -41,11 +41,23 @@ export default function GrupoFinanceiroPage() {
     // Busca membros para filtro
     const { data: membrosData } = await supabase
       .from('group_members')
-      .select('user_id, profiles(full_name)')
+      .select('user_id')
       .eq('group_id', grupoId)
+
+    const membroIds = (membrosData ?? []).map((m: any) => m.user_id)
+    let profilesMap: Record<string, string> = {}
+    if (membroIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', membroIds)
+      profilesMap = Object.fromEntries(
+        (profilesData ?? []).map((p: any) => [p.id, p.full_name])
+      )
+    }
     setMembros((membrosData ?? []).map((m: any) => ({
       user_id: m.user_id,
-      nome: m.profiles?.full_name ?? m.user_id,
+      nome: profilesMap[m.user_id] ?? m.user_id,
     })))
 
     const [{ data: anesthesia }, { data: consultations }] = await Promise.all([
