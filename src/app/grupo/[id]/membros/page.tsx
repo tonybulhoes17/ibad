@@ -14,7 +14,8 @@ interface Membro {
   papel: Papel
   permissao_consolidado: boolean
   aceito_em: string
-  profiles: { full_name: string; crm: string } | null
+  full_name: string
+  crm: string
 }
 
 interface Convite {
@@ -41,11 +42,42 @@ export default function GrupoMembrosPage() {
 
   async function fetchData() {
     setLoading(true)
+
     const [{ data: membrosData }, { data: convitesData }] = await Promise.all([
-      supabase.from('group_members').select('*, profiles(full_name, crm)').eq('group_id', grupoId),
-      supabase.from('group_invites').select('*').eq('group_id', grupoId).eq('usado', false).gte('expira_em', new Date().toISOString()).order('criado_em', { ascending: false }),
+      supabase.from('group_members').select('*').eq('group_id', grupoId),
+      supabase.from('group_invites').select('*')
+        .eq('group_id', grupoId)
+        .eq('usado', false)
+        .gte('expira_em', new Date().toISOString())
+        .order('criado_em', { ascending: false }),
     ])
-    setMembros((membrosData ?? []) as Membro[])
+
+    // Busca profiles separadamente para evitar problema de RLS no join
+    const userIds = (membrosData ?? []).map((m: any) => m.user_id)
+    let profilesMap: Record<string, { full_name: string; crm: string }> = {}
+
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, crm')
+        .in('id', userIds)
+
+      profilesMap = Object.fromEntries(
+        (profilesData ?? []).map((p: any) => [p.id, { full_name: p.full_name, crm: p.crm }])
+      )
+    }
+
+    const membrosFormatados: Membro[] = (membrosData ?? []).map((m: any) => ({
+      id: m.id,
+      user_id: m.user_id,
+      papel: m.papel,
+      permissao_consolidado: m.permissao_consolidado,
+      aceito_em: m.aceito_em,
+      full_name: profilesMap[m.user_id]?.full_name ?? '—',
+      crm: profilesMap[m.user_id]?.crm ?? '—',
+    }))
+
+    setMembros(membrosFormatados)
     setConvites((convitesData ?? []) as Convite[])
     setLoading(false)
   }
@@ -166,82 +198,81 @@ export default function GrupoMembrosPage() {
         <div className="px-5 py-4 border-b border-slate-100">
           <h3 className="text-sm font-semibold text-slate-800">Membros do Grupo</h3>
         </div>
-        <div className="divide-y divide-slate-50">
-          {membros.map(m => (
-            <div key={m.id} className="flex items-center gap-4 px-5 py-4">
-              {/* Avatar */}
-              <div className="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-semibold text-primary-700">
-                  {m.profiles?.full_name?.charAt(0) ?? '?'}
-                </span>
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-medium text-slate-900">{m.profiles?.full_name ?? '—'}</p>
-                  <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${papelColor(m.papel)}`}>
-                    {papelIcon(m.papel)} {m.papel}
+        {membros.length === 0 ? (
+          <div className="p-8 text-center text-slate-400 text-sm">Nenhum membro encontrado</div>
+        ) : (
+          <div className="divide-y divide-slate-50">
+            {membros.map(m => (
+              <div key={m.id} className="flex items-center gap-4 px-5 py-4">
+                {/* Avatar */}
+                <div className="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-semibold text-primary-700">
+                    {m.full_name?.charAt(0) ?? '?'}
                   </span>
-                  {m.permissao_consolidado && m.papel !== 'admin' && (
-                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                      Visão consolidada
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-medium text-slate-900">{m.full_name}</p>
+                    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${papelColor(m.papel)}`}>
+                      {papelIcon(m.papel)} {m.papel}
                     </span>
+                    {m.permissao_consolidado && m.papel !== 'admin' && (
+                      <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                        Visão consolidada
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">CRM: {m.crm}</p>
+                </div>
+
+                {/* Ações */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {updatingId === m.id ? (
+                    <span className="text-xs text-slate-400 animate-pulse">...</span>
+                  ) : (
+                    <>
+                      {m.papel !== 'admin' && (
+                        <select
+                          value={m.papel}
+                          onChange={e => alterarPapel(m, e.target.value as Papel)}
+                          className="text-xs border border-slate-200 rounded-lg px-2 py-1 text-slate-600 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
+                        >
+                          <option value="anestesista">Anestesista</option>
+                          <option value="secretaria">Secretaria</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      )}
+
+                      {m.papel === 'anestesista' && (
+                        <button
+                          onClick={() => togglePermissaoConsolidado(m)}
+                          className={`text-xs px-2 py-1 rounded-lg border transition-colors ${
+                            m.permissao_consolidado
+                              ? 'bg-primary-50 text-primary-700 border-primary-200'
+                              : 'bg-white text-slate-500 border-slate-200 hover:border-primary-300'
+                          }`}
+                        >
+                          Consolidado
+                        </button>
+                      )}
+
+                      {m.papel !== 'admin' && (
+                        <button
+                          onClick={() => removerMembro(m.id)}
+                          className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 font-mono mt-0.5">CRM: {m.profiles?.crm ?? '—'}</p>
               </div>
-
-              {/* Ações */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {updatingId === m.id ? (
-                  <span className="text-xs text-slate-400 animate-pulse">...</span>
-                ) : (
-                  <>
-                    {/* Alterar papel */}
-                    {m.papel !== 'admin' && (
-                      <select
-                        value={m.papel}
-                        onChange={e => alterarPapel(m, e.target.value as Papel)}
-                        className="text-xs border border-slate-200 rounded-lg px-2 py-1 text-slate-600 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
-                      >
-                        <option value="anestesista">Anestesista</option>
-                        <option value="secretaria">Secretaria</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    )}
-
-                    {/* Toggle permissão consolidado — só para anestesistas não admin */}
-                    {m.papel === 'anestesista' && (
-                      <button
-                        onClick={() => togglePermissaoConsolidado(m)}
-                        className={`text-xs px-2 py-1 rounded-lg border transition-colors ${
-                          m.permissao_consolidado
-                            ? 'bg-primary-50 text-primary-700 border-primary-200'
-                            : 'bg-white text-slate-500 border-slate-200 hover:border-primary-300'
-                        }`}
-                        title="Permissão de visão consolidada"
-                      >
-                        Consolidado
-                      </button>
-                    )}
-
-                    {/* Remover — não pode remover admin */}
-                    {m.papel !== 'admin' && (
-                      <button
-                        onClick={() => removerMembro(m.id)}
-                        className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                        title="Remover membro"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>
