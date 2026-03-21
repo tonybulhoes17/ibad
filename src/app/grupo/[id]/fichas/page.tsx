@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useInstituicoes, usePlanos } from '@/hooks'
+import { useGrupoInstituicoes, useGrupoPlanos } from '@/hooks/grupo'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import {
   Search, Plus, Printer, Eye, Edit2, Trash2,
@@ -27,6 +27,7 @@ interface UnifiedRecord {
   is_paid: boolean
   has_glosa: boolean
   user_id: string
+  anestesista_nome: string
   view_href: string
   edit_href: string
   print_href: string
@@ -36,8 +37,8 @@ export default function GrupoFichasPage() {
   const params = useParams()
   const grupoId = params.id as string
   const supabase = createClient()
-  const { instituicoes } = useInstituicoes()
-  const { planos } = usePlanos()
+  const { instituicoes } = useGrupoInstituicoes(grupoId)
+  const { planos } = useGrupoPlanos(grupoId)
 
   const [records, setRecords] = useState<UnifiedRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,7 +49,6 @@ export default function GrupoFichasPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [papel, setPapel] = useState<Papel>('anestesista')
 
-  // Filtros
   const [filterType, setFilterType] = useState<'all' | 'anesthesia' | 'consultation'>('all')
   const [filterInstitution, setFilterInstitution] = useState('')
   const [filterPlan, setFilterPlan] = useState('')
@@ -68,15 +68,28 @@ export default function GrupoFichasPage() {
     const papelLocal = localStorage.getItem('grupo_papel') as Papel ?? 'anestesista'
     setPapel(papelLocal)
 
-    // Busca membros para filtro (admin e permissao_consolidado)
+    // Busca membros sem join de profiles (evita RLS)
     const { data: membrosData } = await supabase
       .from('group_members')
-      .select('user_id, profiles(full_name)')
+      .select('user_id')
       .eq('group_id', grupoId)
+
+    const membroIds = (membrosData ?? []).map((m: any) => m.user_id)
+    let profilesMap: Record<string, string> = {}
+
+    if (membroIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', membroIds)
+      profilesMap = Object.fromEntries(
+        (profilesData ?? []).map((p: any) => [p.id, p.full_name])
+      )
+    }
 
     setMembros((membrosData ?? []).map((m: any) => ({
       user_id: m.user_id,
-      nome: m.profiles?.full_name ?? m.user_id,
+      nome: profilesMap[m.user_id] ?? m.user_id,
     })))
 
     // Busca fichas do grupo
@@ -106,6 +119,7 @@ export default function GrupoFichasPage() {
       is_paid: r.is_paid,
       has_glosa: r.has_glosa,
       user_id: r.user_id,
+      anestesista_nome: profilesMap[r.user_id] ?? '—',
       view_href: `/app/fichas/${r.id}`,
       edit_href: `/app/fichas/${r.id}/editar`,
       print_href: `/print/${r.id}`,
@@ -124,6 +138,7 @@ export default function GrupoFichasPage() {
       is_paid: r.is_paid,
       has_glosa: r.has_glosa,
       user_id: r.user_id,
+      anestesista_nome: profilesMap[r.user_id] ?? '—',
       view_href: `/app/consultas/${r.id}`,
       edit_href: `/app/consultas/${r.id}/editar`,
       print_href: `/print-consulta/${r.id}`,
@@ -133,7 +148,6 @@ export default function GrupoFichasPage() {
       new Date(b.procedure_date).getTime() - new Date(a.procedure_date).getTime()
     )
 
-    // Anestesista comum só vê as próprias fichas (exceto pré-consultas)
     if (papelLocal === 'anestesista') {
       all = all.filter(r => r.user_id === user.id || r.type === 'consultation')
     }
@@ -144,7 +158,7 @@ export default function GrupoFichasPage() {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
-  const podeEditarFinanceiro = papel === 'admin' || papel === 'secretaria' || true
+  const podeEditarFinanceiro = true
   const podeEditarClinico = (r: UnifiedRecord) => r.user_id === currentUserId
   const podeExcluir = (r: UnifiedRecord) => papel === 'admin' || r.user_id === currentUserId
 
@@ -205,6 +219,7 @@ export default function GrupoFichasPage() {
         <td>${formatDate(r.procedure_date)}</td>
         <td><strong>${r.patient_name}</strong>${r.patient_cpf ? `<br/><small>${r.patient_cpf}</small>` : ''}</td>
         <td>${r.surgery_name ?? '—'}</td>
+        <td>${r.anestesista_nome}</td>
         <td>${r.institution_name ?? '—'}</td>
         <td>${r.plan_name ?? '—'}</td>
         <td style="text-align:right">${formatCurrency(r.surgery_value)}</td>
@@ -222,7 +237,7 @@ export default function GrupoFichasPage() {
       </head><body>
       <div class="header"><div><h1>Fichas do Grupo — IBAD</h1><div class="sub">${filtered.length} registro${filtered.length !== 1 ? 's' : ''}</div></div>
       <div class="ibad">IBAD — Sistema de Ficha Anestésica<br/>Gerado em ${new Date().toLocaleDateString('pt-BR')}</div></div>
-      <table><thead><tr><th>Tipo</th><th>Data</th><th>Paciente</th><th>Cirurgia</th><th>Instituição</th><th>Plano</th><th style="text-align:right">Valor</th><th style="text-align:center">Status</th></tr></thead>
+      <table><thead><tr><th>Tipo</th><th>Data</th><th>Paciente</th><th>Cirurgia</th><th>Anestesista</th><th>Instituição</th><th>Plano</th><th style="text-align:right">Valor</th><th style="text-align:center">Status</th></tr></thead>
       <tbody>${rows}</tbody></table>
       <div class="footer"><span>Total: <strong>${filtered.length}</strong></span><span style="font-weight:bold;color:#1E293B">Valor total: ${formatCurrency(totalValue)}</span></div>
       <script>window.onload=()=>{window.print()}<\/script></body></html>`)
@@ -330,7 +345,6 @@ export default function GrupoFichasPage() {
             <label className="form-label">Data Final</label>
             <input type="date" className="form-input text-sm" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} />
           </div>
-          {/* Filtro por membro — só admin e permissao_consolidado */}
           {(isAdmin || localStorage.getItem('grupo_permissao_consolidado') === 'true') && (
             <div>
               <label className="form-label">Anestesista</label>
@@ -368,7 +382,7 @@ export default function GrupoFichasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {['Tipo', 'Data', 'Paciente', 'Cirurgia', 'Instituição', 'Plano', 'Valor', 'Status', 'Ações'].map(h => (
+                  {['Tipo', 'Data', 'Paciente', 'Cirurgia', 'Anestesista', 'Instituição', 'Plano', 'Valor', 'Status', 'Ações'].map(h => (
                     <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -399,11 +413,11 @@ export default function GrupoFichasPage() {
                         <div className="font-medium text-slate-900">{r.patient_name}</div>
                         {r.patient_cpf && <div className="text-xs text-slate-400 font-mono">{r.patient_cpf}</div>}
                       </td>
-                      <td className="px-3 py-3 text-slate-600 max-w-[140px] truncate text-xs">{r.surgery_name ?? '—'}</td>
+                      <td className="px-3 py-3 text-slate-600 max-w-[120px] truncate text-xs">{r.surgery_name ?? '—'}</td>
+                      <td className="px-3 py-3 text-slate-500 text-xs max-w-[100px] truncate">{r.anestesista_nome}</td>
                       <td className="px-3 py-3 text-slate-500 text-xs">{r.institution_name ?? '—'}</td>
                       <td className="px-3 py-3 text-slate-500 text-xs">{r.plan_name ?? '—'}</td>
 
-                      {/* VALOR — editável por todos exceto anestesista de outro médico */}
                       <td className="px-3 py-3">
                         {isEditingVal ? (
                           <input type="text"
@@ -415,17 +429,16 @@ export default function GrupoFichasPage() {
                             autoFocus />
                         ) : (
                           <span
-                            className={`font-mono text-xs text-slate-700 ${podeEditarFinanceiro ? 'cursor-pointer hover:text-primary-600 hover:underline' : ''}`}
-                            title={podeEditarFinanceiro ? 'Clique para editar' : ''}
-                            onClick={() => podeEditarFinanceiro && setEditingValue({ id: r.id, type: r.type, value: String(r.surgery_value ?? '') })}>
+                            className="font-mono text-xs text-slate-700 cursor-pointer hover:text-primary-600 hover:underline"
+                            title="Clique para editar"
+                            onClick={() => setEditingValue({ id: r.id, type: r.type, value: String(r.surgery_value ?? '') })}>
                             {formatCurrency(r.surgery_value)}
                           </span>
                         )}
                       </td>
 
-                      {/* STATUS */}
                       <td className="px-3 py-3">
-                        <button onClick={() => togglePagamento(r)} disabled={isUpdating || (!podeEditarFinanceiro)}
+                        <button onClick={() => togglePagamento(r)} disabled={isUpdating}
                           title={r.is_paid ? 'Clique para Pendente' : 'Clique para Pago'}>
                           {isUpdating ? (
                             <span className="text-xs text-slate-400 animate-pulse">...</span>
@@ -487,9 +500,10 @@ export default function GrupoFichasPage() {
                     </div>
                     <p className="font-semibold text-slate-900">{r.patient_name}</p>
                     <p className="text-xs text-slate-500">{r.surgery_name ?? '—'}</p>
+                    <p className="text-xs text-slate-400">{r.anestesista_nome}</p>
                     <p className="text-xs text-slate-400">{r.plan_name ?? ''}</p>
                   </div>
-                  <button onClick={() => togglePagamento(r)} disabled={updatingId === r.id || !podeEditarFinanceiro} className="flex-shrink-0">
+                  <button onClick={() => togglePagamento(r)} disabled={updatingId === r.id} className="flex-shrink-0">
                     {updatingId === r.id ? (
                       <span className="text-xs text-slate-400">...</span>
                     ) : r.is_paid ? (
