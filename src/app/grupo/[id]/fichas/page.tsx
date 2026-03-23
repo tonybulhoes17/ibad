@@ -48,6 +48,7 @@ export default function GrupoFichasPage() {
   const [editingValue, setEditingValue] = useState<{ id: string; type: RecordType; value: string } | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [papel, setPapel] = useState<Papel>('anestesista')
+  const [permissaoConsolidado, setPermissaoConsolidado] = useState(false)
 
   const [filterType, setFilterType] = useState<'all' | 'anesthesia' | 'consultation'>('all')
   const [filterInstitution, setFilterInstitution] = useState('')
@@ -65,8 +66,22 @@ export default function GrupoFichasPage() {
     if (!user) return
     setCurrentUserId(user.id)
 
-    const papelLocal = localStorage.getItem('grupo_papel') as Papel ?? 'anestesista'
-    setPapel(papelLocal)
+    // Busca o papel do usuário DIRETO DO BANCO (fonte de verdade)
+    const { data: membroAtual } = await supabase
+      .from('group_members')
+      .select('papel, permissao_consolidado')
+      .eq('group_id', grupoId)
+      .eq('user_id', user.id)
+      .single()
+
+    const papelReal = (membroAtual?.papel ?? 'anestesista') as Papel
+    const permissaoReal = membroAtual?.permissao_consolidado ?? false
+    setPapel(papelReal)
+    setPermissaoConsolidado(permissaoReal)
+
+    // Atualiza localStorage com dados corretos do banco
+    localStorage.setItem('grupo_papel', papelReal)
+    localStorage.setItem('grupo_permissao_consolidado', String(permissaoReal))
 
     // Busca membros sem join de profiles (evita RLS)
     const { data: membrosData } = await supabase
@@ -148,7 +163,8 @@ export default function GrupoFichasPage() {
       new Date(b.procedure_date).getTime() - new Date(a.procedure_date).getTime()
     )
 
-    if (papelLocal === 'anestesista') {
+    // Anestesista sem permissão consolidada só vê as próprias fichas + pré-consultas
+    if (papelReal === 'anestesista' && !permissaoReal) {
       all = all.filter(r => r.user_id === user.id || r.type === 'consultation')
     }
 
@@ -158,7 +174,6 @@ export default function GrupoFichasPage() {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
-  const podeEditarFinanceiro = true
   const podeEditarClinico = (r: UnifiedRecord) => r.user_id === currentUserId
   const podeExcluir = (r: UnifiedRecord) => papel === 'admin' || r.user_id === currentUserId
 
@@ -249,14 +264,13 @@ export default function GrupoFichasPage() {
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Fichas do Grupo</h1>
           <p className="text-sm text-slate-500">{filtered.length} registro{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handlePrintList} className="btn-secondary flex items-center gap-2 text-sm" title="Imprimir lista">
+          <button onClick={handlePrintList} className="btn-secondary flex items-center gap-2 text-sm">
             <Printer className="w-4 h-4" /> Imprimir Lista
           </button>
           {!isSecretaria && (
@@ -267,7 +281,6 @@ export default function GrupoFichasPage() {
         </div>
       </div>
 
-      {/* Tipo rápido */}
       <div className="flex gap-2 mb-4">
         {[
           { value: 'all', label: 'Todas' },
@@ -286,7 +299,6 @@ export default function GrupoFichasPage() {
         ))}
       </div>
 
-      {/* Search + Filter */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -304,7 +316,6 @@ export default function GrupoFichasPage() {
         </button>
       </div>
 
-      {/* Filter Panel */}
       {showFilters && (
         <div className="card p-4 mb-4 grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in">
           <div>
@@ -345,7 +356,7 @@ export default function GrupoFichasPage() {
             <label className="form-label">Data Final</label>
             <input type="date" className="form-input text-sm" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} />
           </div>
-          {(isAdmin || localStorage.getItem('grupo_permissao_consolidado') === 'true') && (
+          {(isAdmin || permissaoConsolidado) && (
             <div>
               <label className="form-label">Anestesista</label>
               <select className="form-select text-sm" value={filterMembro} onChange={e => setFilterMembro(e.target.value)}>
@@ -363,7 +374,6 @@ export default function GrupoFichasPage() {
         </div>
       )}
 
-      {/* Table */}
       {loading ? (
         <div className="card p-12 text-center text-slate-400">Carregando fichas...</div>
       ) : filtered.length === 0 ? (
@@ -377,7 +387,6 @@ export default function GrupoFichasPage() {
         </div>
       ) : (
         <>
-          {/* Desktop Table */}
           <div className="card overflow-hidden hidden md:block">
             <table className="w-full text-sm">
               <thead>
@@ -406,9 +415,7 @@ export default function GrupoFichasPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">
-                        {formatDate(r.procedure_date)}
-                      </td>
+                      <td className="px-3 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">{formatDate(r.procedure_date)}</td>
                       <td className="px-3 py-3">
                         <div className="font-medium text-slate-900">{r.patient_name}</div>
                         {r.patient_cpf && <div className="text-xs text-slate-400 font-mono">{r.patient_cpf}</div>}
@@ -417,7 +424,6 @@ export default function GrupoFichasPage() {
                       <td className="px-3 py-3 text-slate-500 text-xs max-w-[100px] truncate">{r.anestesista_nome}</td>
                       <td className="px-3 py-3 text-slate-500 text-xs">{r.institution_name ?? '—'}</td>
                       <td className="px-3 py-3 text-slate-500 text-xs">{r.plan_name ?? '—'}</td>
-
                       <td className="px-3 py-3">
                         {isEditingVal ? (
                           <input type="text"
@@ -428,54 +434,27 @@ export default function GrupoFichasPage() {
                             onKeyDown={e => { if (e.key === 'Enter') saveValue(r); if (e.key === 'Escape') setEditingValue(null) }}
                             autoFocus />
                         ) : (
-                          <span
-                            className="font-mono text-xs text-slate-700 cursor-pointer hover:text-primary-600 hover:underline"
-                            title="Clique para editar"
+                          <span className="font-mono text-xs text-slate-700 cursor-pointer hover:text-primary-600 hover:underline"
                             onClick={() => setEditingValue({ id: r.id, type: r.type, value: String(r.surgery_value ?? '') })}>
                             {formatCurrency(r.surgery_value)}
                           </span>
                         )}
                       </td>
-
                       <td className="px-3 py-3">
-                        <button onClick={() => togglePagamento(r)} disabled={isUpdating}
-                          title={r.is_paid ? 'Clique para Pendente' : 'Clique para Pago'}>
-                          {isUpdating ? (
-                            <span className="text-xs text-slate-400 animate-pulse">...</span>
-                          ) : r.is_paid ? (
-                            <span className="badge-success flex items-center gap-1 cursor-pointer">
-                              <CheckCircle2 className="w-3 h-3" /> Pago
-                            </span>
-                          ) : r.has_glosa ? (
-                            <span className="badge-danger flex items-center gap-1 cursor-pointer">
-                              <AlertTriangle className="w-3 h-3" /> Glosa
-                            </span>
-                          ) : (
-                            <span className="badge-warning flex items-center gap-1 cursor-pointer">
-                              <Clock className="w-3 h-3" /> Pendente
-                            </span>
-                          )}
+                        <button onClick={() => togglePagamento(r)} disabled={isUpdating}>
+                          {isUpdating ? <span className="text-xs text-slate-400 animate-pulse">...</span>
+                            : r.is_paid ? <span className="badge-success flex items-center gap-1 cursor-pointer"><CheckCircle2 className="w-3 h-3" /> Pago</span>
+                            : r.has_glosa ? <span className="badge-danger flex items-center gap-1 cursor-pointer"><AlertTriangle className="w-3 h-3" /> Glosa</span>
+                            : <span className="badge-warning flex items-center gap-1 cursor-pointer"><Clock className="w-3 h-3" /> Pendente</span>
+                          }
                         </button>
                       </td>
-
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={r.view_href} className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600" title="Ver">
-                            <Eye className="w-3.5 h-3.5" />
-                          </Link>
-                          {podeClinical && (
-                            <Link href={r.edit_href} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700" title="Editar">
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </Link>
-                          )}
-                          <Link href={r.print_href} target="_blank" className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700" title="Imprimir">
-                            <Printer className="w-3.5 h-3.5" />
-                          </Link>
-                          {podeExc && (
-                            <button onClick={() => handleDelete(r)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500" title="Excluir">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          <Link href={r.view_href} className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600"><Eye className="w-3.5 h-3.5" /></Link>
+                          {podeClinical && <Link href={r.edit_href} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700"><Edit2 className="w-3.5 h-3.5" /></Link>}
+                          <Link href={r.print_href} target="_blank" className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700"><Printer className="w-3.5 h-3.5" /></Link>
+                          {podeExc && <button onClick={() => handleDelete(r)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>}
                         </div>
                       </td>
                     </tr>
@@ -485,18 +464,16 @@ export default function GrupoFichasPage() {
             </table>
           </div>
 
-          {/* Mobile Cards */}
           <div className="space-y-3 md:hidden">
             {filtered.map(r => (
               <div key={r.id} className="card p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      {r.type === 'anesthesia' ? (
-                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Anestésica</span>
-                      ) : (
-                        <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Pré-Anestésica</span>
-                      )}
+                      {r.type === 'anesthesia'
+                        ? <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Anestésica</span>
+                        : <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Pré-Anestésica</span>
+                      }
                     </div>
                     <p className="font-semibold text-slate-900">{r.patient_name}</p>
                     <p className="text-xs text-slate-500">{r.surgery_name ?? '—'}</p>
@@ -504,15 +481,11 @@ export default function GrupoFichasPage() {
                     <p className="text-xs text-slate-400">{r.plan_name ?? ''}</p>
                   </div>
                   <button onClick={() => togglePagamento(r)} disabled={updatingId === r.id} className="flex-shrink-0">
-                    {updatingId === r.id ? (
-                      <span className="text-xs text-slate-400">...</span>
-                    ) : r.is_paid ? (
-                      <span className="badge-success flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Pago</span>
-                    ) : r.has_glosa ? (
-                      <span className="badge-danger flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Glosa</span>
-                    ) : (
-                      <span className="badge-warning flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</span>
-                    )}
+                    {updatingId === r.id ? <span className="text-xs text-slate-400">...</span>
+                      : r.is_paid ? <span className="badge-success flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Pago</span>
+                      : r.has_glosa ? <span className="badge-danger flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Glosa</span>
+                      : <span className="badge-warning flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</span>
+                    }
                   </button>
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
@@ -521,9 +494,7 @@ export default function GrupoFichasPage() {
                 </div>
                 <div className="flex gap-2">
                   <Link href={r.view_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Ver</Link>
-                  {podeEditarClinico(r) && (
-                    <Link href={r.edit_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Editar</Link>
-                  )}
+                  {podeEditarClinico(r) && <Link href={r.edit_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Editar</Link>}
                   <Link href={r.print_href} target="_blank" className="flex-1 btn-secondary text-xs text-center py-1.5">Imprimir</Link>
                 </div>
               </div>
