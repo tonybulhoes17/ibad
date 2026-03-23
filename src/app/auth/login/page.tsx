@@ -23,15 +23,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Grupo
   const [grupos, setGrupos] = useState<GrupoOption[]>([])
   const [grupoSelecionado, setGrupoSelecionado] = useState<GrupoOption | null>(null)
   const [loadingGrupos, setLoadingGrupos] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [gruposBuscados, setGruposBuscados] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const emailBuscadoRef = useRef('')
 
-  // Fecha dropdown ao clicar fora
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -42,36 +40,38 @@ export default function LoginPage() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // Busca grupos ao sair do campo email (onBlur)
-  async function buscarGrupos() {
-    if (!email || !email.includes('@')) return
-    if (emailBuscadoRef.current === email) return // já buscou
-    emailBuscadoRef.current = email
-
-    setLoadingGrupos(true)
+  // Reseta busca se email ou senha mudar
+  useEffect(() => {
     setGrupos([])
     setGrupoSelecionado(null)
+    setGruposBuscados(false)
+    setError(null)
+  }, [email, password])
 
-    // Autentica temporariamente para buscar grupos — não, apenas busca por email no profiles
-    // Busca user_id pelo email via profiles
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .single()
+  async function buscarGrupos() {
+    if (!email || !password || loadingGrupos || gruposBuscados) return
+    if (!email.includes('@') || password.length < 4) return
 
-    if (!profile) {
+    setLoadingGrupos(true)
+    setError(null)
+
+    // Autentica para ter acesso ao banco
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (authError) {
+      setError('Email ou senha incorretos. Verifique seus dados.')
       setLoadingGrupos(false)
       return
     }
 
-    // Busca grupos do usuário
+    // Busca grupos do usuário autenticado
     const { data: membrosData } = await supabase
       .from('group_members')
       .select('papel, permissao_consolidado, group_id')
-      .eq('user_id', profile.id)
+      .eq('user_id', authData.user.id)
 
     if (!membrosData || membrosData.length === 0) {
+      setGruposBuscados(true)
       setLoadingGrupos(false)
       return
     }
@@ -93,8 +93,8 @@ export default function LoginPage() {
     })
 
     setGrupos(lista)
+    setGruposBuscados(true)
     setLoadingGrupos(false)
-
     if (lista.length > 0) setShowDropdown(true)
   }
 
@@ -109,39 +109,24 @@ export default function LoginPage() {
 
     setLoading(true)
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (authError) {
-      setError('Email ou senha incorretos. Verifique seus dados.')
-      setLoading(false)
-      return
-    }
-
     if (modo === 'grupo' && grupoSelecionado) {
-      // Confirma que ainda é membro (dupla verificação)
-      const { data: membro } = await supabase
-        .from('group_members')
-        .select('papel, permissao_consolidado')
-        .eq('group_id', grupoSelecionado.id)
-        .eq('user_id', authData.user.id)
-        .single()
-
-      if (!membro) {
-        setError('Você não tem permissão para acessar este grupo.')
-        setLoading(false)
-        return
-      }
-
+      // Já autenticou no buscarGrupos, só salva contexto e redireciona
       localStorage.setItem('grupo_id', grupoSelecionado.id)
       localStorage.setItem('grupo_nome', grupoSelecionado.nome)
-      localStorage.setItem('grupo_papel', membro.papel)
-      localStorage.setItem('grupo_permissao_consolidado', String(membro.permissao_consolidado))
-
+      localStorage.setItem('grupo_papel', grupoSelecionado.papel)
+      localStorage.setItem('grupo_permissao_consolidado', String(grupoSelecionado.permissao_consolidado))
       router.push(`/grupo/${grupoSelecionado.id}/dashboard`)
       router.refresh()
       return
     }
 
+    // Modo individual
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    if (authError) {
+      setError('Email ou senha incorretos. Verifique seus dados.')
+      setLoading(false)
+      return
+    }
     router.push('/app/dashboard')
     router.refresh()
   }
@@ -150,7 +135,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-primary-700 rounded-2xl mb-4 shadow-lg">
             <Stethoscope className="w-7 h-7 text-white" />
@@ -159,15 +143,13 @@ export default function LoginPage() {
           <p className="text-slate-500 text-sm mt-1">Ficha Anestésica Digital</p>
         </div>
 
-        {/* Card */}
         <div className="card p-8">
           <h2 className="text-xl font-semibold text-slate-800 mb-1">Entrar</h2>
           <p className="text-sm text-slate-500 mb-6">Acesse sua conta para continuar</p>
 
-          {/* Seletor Individual / Grupo */}
           <div className="flex gap-2 mb-6">
             <button type="button"
-              onClick={() => { setModo('individual'); setError(null); setGrupoSelecionado(null) }}
+              onClick={() => { setModo('individual'); setError(null); setGrupoSelecionado(null); setGrupos([]) }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
                 modo === 'individual'
                   ? 'bg-primary-700 text-white border-primary-700'
@@ -196,21 +178,46 @@ export default function LoginPage() {
                 className="form-input"
                 placeholder="seu@email.com"
                 value={email}
-                onChange={e => { setEmail(e.target.value); emailBuscadoRef.current = '' }}
-                onBlur={() => { if (modo === 'grupo') buscarGrupos() }}
+                onChange={e => setEmail(e.target.value)}
                 required
                 autoComplete="email"
               />
             </div>
 
-            {/* GRUPO — só no modo grupo, após email */}
+            {/* SENHA */}
+            <div>
+              <label className="form-label">Senha</label>
+              <div className="relative">
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  className="form-input pr-10"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onBlur={() => { if (modo === 'grupo') buscarGrupos() }}
+                  required
+                  autoComplete="current-password"
+                />
+                <button type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* GRUPO */}
             {modo === 'grupo' && (
               <div className="animate-fade-in" ref={dropdownRef}>
                 <label className="form-label">Grupo</label>
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => grupos.length > 0 && setShowDropdown(!showDropdown)}
+                    onFocus={() => { if (!gruposBuscados) buscarGrupos() }}
+                    onClick={() => {
+                      if (!gruposBuscados) buscarGrupos()
+                      else if (grupos.length > 0) setShowDropdown(!showDropdown)
+                    }}
                     className={`form-input w-full text-left flex items-center justify-between ${
                       !grupoSelecionado ? 'text-slate-400' : 'text-slate-900'
                     }`}>
@@ -218,8 +225,8 @@ export default function LoginPage() {
                       {loadingGrupos
                         ? 'Buscando grupos...'
                         : grupoSelecionado
-                          ? `${grupoSelecionado.nome} (${grupoSelecionado.papel})`
-                          : grupos.length === 0 && emailBuscadoRef.current
+                          ? `${grupoSelecionado.nome} — ${grupoSelecionado.papel}`
+                          : gruposBuscados && grupos.length === 0
                             ? 'Nenhum grupo encontrado'
                             : 'Selecione um grupo...'}
                     </span>
@@ -232,9 +239,7 @@ export default function LoginPage() {
                   {showDropdown && grupos.length > 0 && (
                     <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
                       {grupos.map(g => (
-                        <button
-                          key={g.id}
-                          type="button"
+                        <button key={g.id} type="button"
                           onClick={() => { setGrupoSelecionado(g); setShowDropdown(false); setError(null) }}
                           className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors border-b last:border-0">
                           <p className="text-sm font-medium text-slate-900">{g.nome}</p>
@@ -244,29 +249,11 @@ export default function LoginPage() {
                     </div>
                   )}
                 </div>
+                {gruposBuscados && grupos.length === 0 && !loadingGrupos && (
+                  <p className="text-xs text-slate-400 mt-1">Você não pertence a nenhum grupo.</p>
+                )}
               </div>
             )}
-
-            {/* SENHA */}
-            <div>
-              <label className="form-label">Senha</label>
-              <div className="relative">
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  className="form-input pr-10"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                />
-                <button type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
