@@ -453,7 +453,7 @@ export default function GrupoFichasPage() {
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Link href={r.view_href} className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600"><Eye className="w-3.5 h-3.5" /></Link>
                           {podeClinical && <Link href={r.edit_href} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700"><Edit2 className="w-3.5 h-3.5" /></Link>}
-                          <Link href={r.print_href} target="_blank" className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700"><Printer className="w-3.5 h-3.5" /></Link>
+                          <Link href={r.print_href} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700"><Printer className="w-3.5 h-3.5" /></Link>
                           {podeExc && <button onClick={() => handleDelete(r)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>}
                         </div>
                       </td>
@@ -495,7 +495,7 @@ export default function GrupoFichasPage() {
                 <div className="flex gap-2">
                   <Link href={r.view_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Ver</Link>
                   {podeEditarClinico(r) && <Link href={r.edit_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Editar</Link>}
-                  <Link href={r.print_href} target="_blank" className="flex-1 btn-secondary text-xs text-center py-1.5">Imprimir</Link>
+                  <Link href={r.print_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Imprimir</Link>
                 </div>
               </div>
             ))}
