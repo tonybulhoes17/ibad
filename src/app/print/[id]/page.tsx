@@ -3,7 +3,13 @@ import { notFound } from 'next/navigation'
 import { FichaPrint } from '@/components/ficha/FichaPrint'
 import { PrintActions } from './PrintActions'
 
-export default async function PrintPage({ params }: { params: { id: string } }) {
+export default async function PrintPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string }
+  searchParams: { from_group?: string }
+}) {
   const supabase = createServerClient()
   const { data: record } = await supabase
     .from('anesthesia_records')
@@ -25,7 +31,7 @@ export default async function PrintPage({ params }: { params: { id: string } }) 
           <p className="font-semibold text-slate-800">Ficha: {record.patient_name}</p>
           <p className="text-xs text-slate-500">Visualização de impressão A4</p>
         </div>
-        <PrintActions recordId={params.id} />
+        <PrintActions recordId={params.id} fromGroup={searchParams.from_group} />
       </div>
       <div className="flex justify-center py-8">
         <div className="shadow-xl">

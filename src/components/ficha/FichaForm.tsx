@@ -85,7 +85,7 @@ export function FichaForm({ initialData, recordId, mode = 'create', groupId: gro
     } else {
       const { record, error } = await save(payload, groupId)
       if (!error && record) {
-        const destino = groupId ? `/grupo/${groupId}/fichas` : `/app/fichas/${record.id}`
+        const destino = `/print/${record.id}${groupId ? `?from_group=${groupId}` : ''}`
         router.push(destino)
       }
     }
