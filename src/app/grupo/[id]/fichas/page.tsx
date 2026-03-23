@@ -137,7 +137,7 @@ export default function GrupoFichasPage() {
       anestesista_nome: profilesMap[r.user_id] ?? '—',
       view_href: `/app/fichas/${r.id}`,
       edit_href: `/app/fichas/${r.id}/editar`,
-      print_href: `/print/${r.id}`,
+      print_href: `/print/${r.id}?from_group=${grupoId}`,
     }))
 
     const cList: UnifiedRecord[] = (consultations ?? []).map((r: any) => ({
