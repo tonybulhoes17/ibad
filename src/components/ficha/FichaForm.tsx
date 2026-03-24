@@ -369,11 +369,7 @@ export function FichaForm({ initialData, recordId, mode = 'create', groupId: gro
             </button>
           ) : (
             <>
-              <button type="button"
-                onClick={() => router.push(`/print/${recordId ?? 'preview'}`)}
-                className="btn-secondary flex items-center gap-2">
-                <Eye className="w-4 h-4" /> Preview
-              </button>
+              
               <button type="button"
                 onClick={handleSubmit}
                 disabled={saving || !isValid}
