@@ -6,12 +6,12 @@ import { useInstituicoes, usePlanos } from '@/hooks'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import {
   Search, Plus, Printer, Eye, Edit2, Trash2,
-  Filter, X, Calendar, CheckCircle2, Clock, AlertTriangle, Stethoscope, ClipboardList
+  Filter, X, Calendar, CheckCircle2, Clock, AlertTriangle,
+  Stethoscope, ClipboardList, Moon
 } from 'lucide-react'
-import { ANESTHESIA_TYPES } from '@/constants/anesthesia'
 import { createClient } from '@/lib/supabase/client'
 
-type RecordType = 'anesthesia' | 'consultation'
+type RecordType = 'anesthesia' | 'consultation' | 'shift'
 
 interface UnifiedRecord {
   id: string
@@ -43,8 +43,7 @@ export default function FichasPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState<{ id: string; type: RecordType; value: string } | null>(null)
 
-  // Filtros
-  const [filterType, setFilterType] = useState<'all' | 'anesthesia' | 'consultation'>('all')
+  const [filterType, setFilterType] = useState<'all' | RecordType>('all')
   const [filterInstitution, setFilterInstitution] = useState('')
   const [filterPlan, setFilterPlan] = useState('')
   const [filterPaid, setFilterPaid] = useState('')
@@ -57,58 +56,49 @@ export default function FichasPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const [{ data: anesthesia }, { data: consultations }] = await Promise.all([
-      supabase
-        .from('anesthesia_records')
-        .select('*, institutions(name), insurance_plans(name)')
-        .eq('user_id', user.id)
-        .is('group_id', null)
-        .order('procedure_date', { ascending: false }),
-      supabase
-        .from('consultation_records')
-        .select('*, institutions(name), insurance_plans(name)')
-        .eq('user_id', user.id)
-        .is('group_id', null)
-        .order('procedure_date', { ascending: false }),
+    const [{ data: anesthesia }, { data: consultations }, { data: shifts }] = await Promise.all([
+      supabase.from('anesthesia_records').select('*, institutions(name), insurance_plans(name)')
+        .eq('user_id', user.id).is('group_id', null).order('procedure_date', { ascending: false }),
+      supabase.from('consultation_records').select('*, institutions(name), insurance_plans(name)')
+        .eq('user_id', user.id).is('group_id', null).order('consultation_date', { ascending: false }),
+      supabase.from('shifts').select('*, institutions(name)')
+        .eq('user_id', user.id).order('shift_date', { ascending: false }),
     ])
 
     const aList: UnifiedRecord[] = (anesthesia ?? []).map((r: any) => ({
-      id: r.id,
-      type: 'anesthesia',
-      patient_name: r.patient_name,
-      patient_cpf: r.patient_cpf,
-      procedure_date: r.procedure_date,
-      surgery_name: r.surgery_name,
-      institution_name: r.institutions?.name ?? null,
-      plan_name: r.insurance_plans?.name ?? null,
-      anesthesia_type: r.anesthesia_type,
-      surgery_value: r.surgery_value,
-      is_paid: r.is_paid,
-      has_glosa: r.has_glosa,
-      view_href: `/app/fichas/${r.id}`,
-      edit_href: `/app/fichas/${r.id}/editar`,
-      print_href: `/print/${r.id}`,
+      id: r.id, type: 'anesthesia',
+      patient_name: r.patient_name, patient_cpf: r.patient_cpf,
+      procedure_date: r.procedure_date, surgery_name: r.surgery_name,
+      institution_name: r.institutions?.name ?? null, plan_name: r.insurance_plans?.name ?? null,
+      anesthesia_type: r.anesthesia_type, surgery_value: r.surgery_value,
+      is_paid: r.is_paid, has_glosa: r.has_glosa,
+      view_href: `/app/fichas/${r.id}`, edit_href: `/app/fichas/${r.id}/editar`, print_href: `/print/${r.id}`,
     }))
 
     const cList: UnifiedRecord[] = (consultations ?? []).map((r: any) => ({
-      id: r.id,
-      type: 'consultation',
-      patient_name: r.patient_name,
-      patient_cpf: r.patient_cpf,
-      procedure_date: r.consultation_date,
-      surgery_name: r.surgery_name,
-      institution_name: r.institutions?.name ?? null,
-      plan_name: r.insurance_plans?.name ?? null,
-      anesthesia_type: null,
-      surgery_value: r.surgery_value,
-      is_paid: r.is_paid,
-      has_glosa: r.has_glosa,
-      view_href: `/app/consultas/${r.id}`,
-      edit_href: `/app/consultas/${r.id}/editar`,
-      print_href: `/print-consulta/${r.id}`,
+      id: r.id, type: 'consultation',
+      patient_name: r.patient_name, patient_cpf: r.patient_cpf,
+      procedure_date: r.consultation_date, surgery_name: r.surgery_name,
+      institution_name: r.institutions?.name ?? null, plan_name: r.insurance_plans?.name ?? null,
+      anesthesia_type: null, surgery_value: r.surgery_value,
+      is_paid: r.is_paid, has_glosa: r.has_glosa,
+      view_href: `/app/consultas/${r.id}`, edit_href: `/app/consultas/${r.id}/editar`, print_href: `/print-consulta/${r.id}`,
     }))
 
-    const all = [...aList, ...cList].sort((a, b) =>
+    const sList: UnifiedRecord[] = (shifts ?? []).map((r: any) => ({
+      id: r.id, type: 'shift',
+      patient_name: r.institution_name ?? r.institutions?.name ?? 'Plantão',
+      patient_cpf: null,
+      procedure_date: r.shift_date,
+      surgery_name: r.shift_type,
+      institution_name: r.institution_name ?? r.institutions?.name ?? null,
+      plan_name: null, anesthesia_type: null,
+      surgery_value: r.value,
+      is_paid: r.is_paid, has_glosa: false,
+      view_href: '/app/plantoes', edit_href: '/app/plantoes', print_href: '',
+    }))
+
+    const all = [...aList, ...cList, ...sList].sort((a, b) =>
       new Date(b.procedure_date).getTime() - new Date(a.procedure_date).getTime()
     )
     setRecords(all)
@@ -135,10 +125,12 @@ export default function FichasPage() {
 
   async function togglePagamento(r: UnifiedRecord) {
     setUpdatingId(r.id)
-    const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
-    await (supabase.from(table) as any)
-      .update({ is_paid: !r.is_paid, has_glosa: false })
-      .eq('id', r.id)
+    if (r.type === 'shift') {
+      await (supabase.from('shifts') as any).update({ is_paid: !r.is_paid }).eq('id', r.id)
+    } else {
+      const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
+      await (supabase.from(table) as any).update({ is_paid: !r.is_paid, has_glosa: false }).eq('id', r.id)
+    }
     await fetchAll()
     setUpdatingId(null)
   }
@@ -147,114 +139,91 @@ export default function FichasPage() {
     if (!editingValue) return
     const numVal = parseFloat(editingValue.value.replace(',', '.'))
     if (!isNaN(numVal)) {
-      const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
-      await (supabase.from(table) as any)
-        .update({ surgery_value: numVal })
-        .eq('id', r.id)
+      if (r.type === 'shift') {
+        await (supabase.from('shifts') as any).update({ value: numVal }).eq('id', r.id)
+      } else {
+        const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
+        await (supabase.from(table) as any).update({ surgery_value: numVal }).eq('id', r.id)
+      }
       await fetchAll()
     }
     setEditingValue(null)
   }
 
   async function handleDelete(r: UnifiedRecord) {
-    if (!confirm('Excluir esta ficha? Esta ação não pode ser desfeita.')) return
-    const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
-    await (supabase.from(table) as any).delete().eq('id', r.id)
+    if (!confirm('Excluir este registro?')) return
+    if (r.type === 'shift') {
+      await (supabase.from('shifts') as any).delete().eq('id', r.id)
+    } else {
+      const table = r.type === 'anesthesia' ? 'anesthesia_records' : 'consultation_records'
+      await (supabase.from(table) as any).delete().eq('id', r.id)
+    }
     await fetchAll()
   }
 
   function handlePrintList() {
     const win = window.open('', '_blank')
     if (!win) return
-
     const totalValue = filtered.reduce((s, r) => s + (r.surgery_value ?? 0), 0)
-
+    const tipoLabel = (r: UnifiedRecord) =>
+      r.type === 'anesthesia' ? 'Anest.' : r.type === 'consultation' ? 'Pré-Anest.' : 'Plantão'
     const rows = filtered.map((r, i) => `
       <tr style="background:${i % 2 === 0 ? '#fff' : '#F8FAFC'}">
-        <td>${r.type === 'anesthesia' ? 'Anest.' : 'Pré-Anest.'}</td>
+        <td>${tipoLabel(r)}</td>
         <td>${formatDate(r.procedure_date)}</td>
-        <td>
-          <strong>${r.patient_name}</strong>
-          ${r.patient_cpf ? `<br/><small>${r.patient_cpf}</small>` : ''}
-        </td>
+        <td><strong>${r.patient_name}</strong>${r.patient_cpf ? `<br/><small>${r.patient_cpf}</small>` : ''}</td>
         <td>${r.surgery_name ?? '—'}</td>
         <td>${r.institution_name ?? '—'}</td>
         <td>${r.plan_name ?? '—'}</td>
         <td style="text-align:right">${formatCurrency(r.surgery_value)}</td>
         <td style="text-align:center">
-          <span style="
-            padding:2px 7px;border-radius:20px;font-size:9px;font-weight:bold;
+          <span style="padding:2px 7px;border-radius:20px;font-size:9px;font-weight:bold;
             background:${r.is_paid ? '#ECFDF5' : r.has_glosa ? '#FEF2F2' : '#FFFBEB'};
-            color:${r.is_paid ? '#065F46' : r.has_glosa ? '#991B1B' : '#92400E'};
-          ">${r.is_paid ? 'Pago' : r.has_glosa ? 'Glosa' : 'Pendente'}</span>
+            color:${r.is_paid ? '#065F46' : r.has_glosa ? '#991B1B' : '#92400E'}">
+            ${r.is_paid ? 'Pago' : r.has_glosa ? 'Glosa' : 'Pendente'}
+          </span>
         </td>
-      </tr>
-    `).join('')
-
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8"/>
-        <title>Lista de Fichas — IBAD</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: Arial, sans-serif; font-size: 10px; color: #1E293B; padding: 12mm; }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1A56A0; padding-bottom: 8px; margin-bottom: 10px; }
-          h1 { font-size: 16px; color: #1A56A0; margin-bottom: 2px; }
-          .sub { font-size: 9px; color: #64748B; }
-          .ibad { font-size: 9px; color: #94A3B8; text-align: right; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-          th { background: #1A56A0; color: white; text-align: left; padding: 5px 7px; font-size: 8.5px; text-transform: uppercase; }
-          th:last-child, th:nth-child(7) { text-align: center; }
-          td { padding: 5px 7px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; font-size: 9.5px; }
-          small { color: #94A3B8; font-size: 8px; }
-          .footer { display: flex; justify-content: space-between; font-size: 8.5px; color: #94A3B8; margin-top: 8px; border-top: 1px solid #E2E8F0; padding-top: 6px; }
-          .total { font-size: 10px; font-weight: bold; color: #1E293B; }
-          @media print { @page { size: A4 landscape; margin: 10mm; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div>
-            <h1>Lista de Fichas — IBAD</h1>
-            <div class="sub">${filtered.length} registro${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}</div>
-          </div>
-          <div class="ibad">IBAD — Sistema de Ficha Anestésica<br/>Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Tipo</th><th>Data</th><th>Paciente</th><th>Cirurgia</th>
-              <th>Instituição</th><th>Plano</th><th style="text-align:right">Valor</th><th style="text-align:center">Status</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <div class="footer">
-          <span>Total de registros: <strong>${filtered.length}</strong></span>
-          <span class="total">Valor total: ${formatCurrency(totalValue)}</span>
-        </div>
-        <script>window.onload = () => { window.print(); }<\/script>
-      </body>
-      </html>
-    `)
+      </tr>`).join('')
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/>
+      <title>Lista de Procedimentos — AnestPrime</title>
+      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10px;color:#1E293B;padding:12mm}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1A56A0;padding-bottom:8px;margin-bottom:10px}h1{font-size:16px;color:#1A56A0;margin-bottom:2px}.sub{font-size:9px;color:#64748B}.ibad{font-size:9px;color:#94A3B8;text-align:right}table{width:100%;border-collapse:collapse;margin-bottom:10px}th{background:#1A56A0;color:white;text-align:left;padding:5px 7px;font-size:8.5px;text-transform:uppercase}td{padding:5px 7px;border-bottom:1px solid #F1F5F9;vertical-align:middle;font-size:9.5px}small{color:#94A3B8;font-size:8px}.footer{display:flex;justify-content:space-between;font-size:8.5px;color:#94A3B8;margin-top:8px;border-top:1px solid #E2E8F0;padding-top:6px}@media print{@page{size:A4 landscape;margin:10mm}}</style>
+      </head><body>
+      <div class="header"><div><h1>Lista de Procedimentos — AnestPrime</h1><div class="sub">${filtered.length} registro${filtered.length !== 1 ? 's' : ''}</div></div>
+      <div class="ibad">AnestPrime — Plataforma do Anestesista<br/>Gerado em ${new Date().toLocaleDateString('pt-BR')}</div></div>
+      <table><thead><tr><th>Tipo</th><th>Data</th><th>Paciente/Local</th><th>Procedimento</th><th>Instituição</th><th>Plano</th><th style="text-align:right">Valor</th><th style="text-align:center">Status</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <div class="footer"><span>Total: <strong>${filtered.length}</strong></span><span style="font-weight:bold;color:#1E293B">Valor total: ${formatCurrency(totalValue)}</span></div>
+      <script>window.onload=()=>{window.print()}<\/script></body></html>`)
     win.document.close()
+  }
+
+  function TypeBadge({ type }: { type: RecordType }) {
+    if (type === 'anesthesia') return (
+      <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+        <ClipboardList className="w-3 h-3" /> Anest.
+      </span>
+    )
+    if (type === 'consultation') return (
+      <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+        <Stethoscope className="w-3 h-3" /> Pré-Anest.
+      </span>
+    )
+    return (
+      <span className="inline-flex items-center gap-1 text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+        <Moon className="w-3 h-3" /> Plantão
+      </span>
+    )
   }
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Fichas</h1>
+          <h1 className="text-xl font-bold text-slate-900">Procedimentos</h1>
           <p className="text-sm text-slate-500">{filtered.length} registro{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrintList}
-            className="btn-secondary flex items-center gap-2 text-sm"
-            title="Imprimir lista filtrada">
+          <button onClick={handlePrintList} className="btn-secondary flex items-center gap-2 text-sm">
             <Printer className="w-4 h-4" /> Imprimir Lista
           </button>
           <Link href="/app/nova-ficha" className="btn-primary flex items-center gap-2 text-sm">
@@ -264,14 +233,14 @@ export default function FichasPage() {
       </div>
 
       {/* Tipo rápido */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 flex-wrap">
         {[
-          { value: 'all', label: 'Todas' },
+          { value: 'all', label: 'Todos' },
           { value: 'anesthesia', label: '🫁 Anestésicas' },
           { value: 'consultation', label: '🩺 Pré-Anestésicas' },
+          { value: 'shift', label: '🌙 Plantões' },
         ].map(opt => (
-          <button key={opt.value}
-            onClick={() => setFilterType(opt.value as any)}
+          <button key={opt.value} onClick={() => setFilterType(opt.value as any)}
             className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
               filterType === opt.value
                 ? 'bg-primary-700 text-white border-primary-700'
@@ -286,7 +255,7 @@ export default function FichasPage() {
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input type="text" className="form-input pl-9" placeholder="Buscar por nome do paciente..."
+          <input type="text" className="form-input pl-9" placeholder="Buscar por nome ou instituição..."
             value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <button onClick={() => setShowFilters(!showFilters)}
@@ -300,7 +269,6 @@ export default function FichasPage() {
         </button>
       </div>
 
-      {/* Filter Panel */}
       {showFilters && (
         <div className="card p-4 mb-4 grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in">
           <div>
@@ -341,7 +309,7 @@ export default function FichasPage() {
             <label className="form-label">Data Final</label>
             <input type="date" className="form-input text-sm" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} />
           </div>
-          <div className="flex items-end col-span-2 lg:col-span-2">
+          <div className="flex items-end col-span-2">
             <button onClick={() => { setFilterType('all'); setFilterInstitution(''); setFilterPlan(''); setFilterPaid(''); setFilterGlosa(''); setFilterDateFrom(''); setFilterDateTo(''); setShowFilters(false) }}
               className="btn-secondary w-full text-sm flex items-center justify-center gap-1">
               <X className="w-3 h-3" /> Limpar filtros
@@ -350,24 +318,22 @@ export default function FichasPage() {
         </div>
       )}
 
-      {/* Table */}
       {loading ? (
-        <div className="card p-12 text-center text-slate-400">Carregando fichas...</div>
+        <div className="card p-12 text-center text-slate-400">Carregando...</div>
       ) : filtered.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-slate-400 mb-4">Nenhuma ficha encontrada</p>
+          <p className="text-slate-400 mb-4">Nenhum registro encontrado</p>
           <Link href="/app/nova-ficha" className="btn-primary inline-flex items-center gap-2 text-sm">
             <Plus className="w-4 h-4" /> Criar primeira ficha
           </Link>
         </div>
       ) : (
         <>
-          {/* Desktop Table */}
           <div className="card overflow-hidden hidden md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {['Tipo', 'Data', 'Paciente', 'Cirurgia', 'Instituição', 'Plano', 'Valor', 'Status', 'Ações'].map(h => (
+                  {['Tipo', 'Data', 'Paciente / Local', 'Procedimento', 'Instituição', 'Plano', 'Valor', 'Status', 'Ações'].map(h => (
                     <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -378,20 +344,8 @@ export default function FichasPage() {
                   const isEditingVal = editingValue?.id === r.id
                   return (
                     <tr key={r.id} className="hover:bg-slate-50 transition-colors group">
-                      <td className="px-3 py-3">
-                        {r.type === 'anesthesia' ? (
-                          <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                            <ClipboardList className="w-3 h-3" /> Anest.
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
-                            <Stethoscope className="w-3 h-3" /> Pré-Anest.
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">
-                        {formatDate(r.procedure_date)}
-                      </td>
+                      <td className="px-3 py-3"><TypeBadge type={r.type} /></td>
+                      <td className="px-3 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">{formatDate(r.procedure_date)}</td>
                       <td className="px-3 py-3">
                         <div className="font-medium text-slate-900">{r.patient_name}</div>
                         {r.patient_cpf && <div className="text-xs text-slate-400 font-mono">{r.patient_cpf}</div>}
@@ -399,12 +353,9 @@ export default function FichasPage() {
                       <td className="px-3 py-3 text-slate-600 max-w-[140px] truncate text-xs">{r.surgery_name ?? '—'}</td>
                       <td className="px-3 py-3 text-slate-500 text-xs">{r.institution_name ?? '—'}</td>
                       <td className="px-3 py-3 text-slate-500 text-xs">{r.plan_name ?? '—'}</td>
-
-                      {/* VALOR editável */}
                       <td className="px-3 py-3">
                         {isEditingVal ? (
-                          <input type="text"
-                            className="w-24 text-xs font-mono border border-primary-400 rounded px-1.5 py-0.5 outline-none"
+                          <input type="text" className="w-24 text-xs font-mono border border-primary-400 rounded px-1.5 py-0.5 outline-none"
                             value={editingValue.value}
                             onChange={e => setEditingValue({ id: r.id, type: r.type, value: e.target.value })}
                             onBlur={() => saveValue(r)}
@@ -412,47 +363,32 @@ export default function FichasPage() {
                             autoFocus />
                         ) : (
                           <span className="font-mono text-xs text-slate-700 cursor-pointer hover:text-primary-600 hover:underline"
-                            title="Clique para editar"
                             onClick={() => setEditingValue({ id: r.id, type: r.type, value: String(r.surgery_value ?? '') })}>
                             {formatCurrency(r.surgery_value)}
                           </span>
                         )}
                       </td>
-
-                      {/* STATUS */}
                       <td className="px-3 py-3">
-                        <button onClick={() => togglePagamento(r)} disabled={isUpdating}
-                          title={r.is_paid ? 'Clique para Pendente' : 'Clique para Pago'}>
-                          {isUpdating ? (
-                            <span className="text-xs text-slate-400 animate-pulse">...</span>
-                          ) : r.is_paid ? (
-                            <span className="badge-success flex items-center gap-1 cursor-pointer">
-                              <CheckCircle2 className="w-3 h-3" /> Pago
-                            </span>
-                          ) : r.has_glosa ? (
-                            <span className="badge-danger flex items-center gap-1 cursor-pointer">
-                              <AlertTriangle className="w-3 h-3" /> Glosa
-                            </span>
-                          ) : (
-                            <span className="badge-warning flex items-center gap-1 cursor-pointer">
-                              <Clock className="w-3 h-3" /> Pendente
-                            </span>
-                          )}
+                        <button onClick={() => togglePagamento(r)} disabled={isUpdating}>
+                          {isUpdating ? <span className="text-xs text-slate-400 animate-pulse">...</span>
+                            : r.is_paid ? <span className="badge-success flex items-center gap-1 cursor-pointer"><CheckCircle2 className="w-3 h-3" /> Pago</span>
+                            : r.has_glosa ? <span className="badge-danger flex items-center gap-1 cursor-pointer"><AlertTriangle className="w-3 h-3" /> Glosa</span>
+                            : <span className="badge-warning flex items-center gap-1 cursor-pointer"><Clock className="w-3 h-3" /> Pendente</span>
+                          }
                         </button>
                       </td>
-
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={r.view_href} className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600" title="Ver">
-                            <Eye className="w-3.5 h-3.5" />
-                          </Link>
-                          <Link href={r.edit_href} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700" title="Editar">
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </Link>
-                          <Link href={r.print_href} target="_blank" className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700" title="Imprimir">
-                            <Printer className="w-3.5 h-3.5" />
-                          </Link>
-                          <button onClick={() => handleDelete(r)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500" title="Excluir">
+                          {r.type !== 'shift' && (
+                            <>
+                              <Link href={r.view_href} className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600"><Eye className="w-3.5 h-3.5" /></Link>
+                              <Link href={r.edit_href} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700"><Edit2 className="w-3.5 h-3.5" /></Link>
+                              {r.print_href && (
+                                <Link href={r.print_href} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700"><Printer className="w-3.5 h-3.5" /></Link>
+                              )}
+                            </>
+                          )}
+                          <button onClick={() => handleDelete(r)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -470,38 +406,27 @@ export default function FichasPage() {
               <div key={r.id} className="card p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      {r.type === 'anesthesia' ? (
-                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Anestésica</span>
-                      ) : (
-                        <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Pré-Anestésica</span>
-                      )}
-                    </div>
+                    <div className="mb-1"><TypeBadge type={r.type} /></div>
                     <p className="font-semibold text-slate-900">{r.patient_name}</p>
                     <p className="text-xs text-slate-500">{r.surgery_name ?? '—'}</p>
-                    <p className="text-xs text-slate-400">{r.plan_name ?? ''}</p>
                   </div>
                   <button onClick={() => togglePagamento(r)} disabled={updatingId === r.id} className="flex-shrink-0">
-                    {updatingId === r.id ? (
-                      <span className="text-xs text-slate-400">...</span>
-                    ) : r.is_paid ? (
-                      <span className="badge-success flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Pago</span>
-                    ) : r.has_glosa ? (
-                      <span className="badge-danger flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Glosa</span>
-                    ) : (
-                      <span className="badge-warning flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</span>
-                    )}
+                    {updatingId === r.id ? <span className="text-xs text-slate-400">...</span>
+                      : r.is_paid ? <span className="badge-success flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Pago</span>
+                      : <span className="badge-warning flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</span>
+                    }
                   </button>
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
                   <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(r.procedure_date)}</span>
                   <span className="font-mono font-medium text-slate-600">{formatCurrency(r.surgery_value)}</span>
                 </div>
-                <div className="flex gap-2">
-                  <Link href={r.view_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Ver</Link>
-                  <Link href={r.edit_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Editar</Link>
-                  <Link href={r.print_href} target="_blank" className="flex-1 btn-secondary text-xs text-center py-1.5">Imprimir</Link>
-                </div>
+                {r.type !== 'shift' && (
+                  <div className="flex gap-2">
+                    <Link href={r.view_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Ver</Link>
+                    <Link href={r.edit_href} className="flex-1 btn-secondary text-xs text-center py-1.5">Editar</Link>
+                  </div>
+                )}
               </div>
             ))}
           </div>
