@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ClipboardList, Stethoscope, AlertTriangle, Building2, Shield } from 'lucide-react'
+import { ArrowLeft, ClipboardList, Stethoscope, AlertTriangle, Building2, Shield, Moon } from 'lucide-react'
 import { useInstituicoes, usePlanos } from '@/hooks'
 
 export default function EscolhaFichaPage() {
@@ -24,15 +23,15 @@ export default function EscolhaFichaPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-3xl">
 
         {/* Voltar */}
         <Link href="/app/fichas" className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-700 mb-8 text-sm">
           <ArrowLeft className="w-4 h-4" /> Voltar para fichas
         </Link>
 
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Nova Ficha</h1>
-        <p className="text-slate-500 mb-6">Selecione o tipo de ficha que deseja criar</p>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Novo Lançamento</h1>
+        <p className="text-slate-500 mb-6">Selecione o tipo de registro que deseja criar</p>
 
         {/* Aviso bloqueante */}
         {!canCreate && (
@@ -42,11 +41,10 @@ export default function EscolhaFichaPage() {
               <div>
                 <h3 className="font-semibold text-amber-800 mb-1">Cadastro incompleto</h3>
                 <p className="text-sm text-amber-700">
-                  Para lançar uma ficha é necessário ter pelo menos uma <strong>Instituição</strong> e um <strong>Plano de Saúde</strong> cadastrados. Complete os cadastros abaixo para continuar.
+                  Para lançar uma ficha é necessário ter pelo menos uma <strong>Instituição</strong> e um <strong>Plano de Saúde</strong> cadastrados.
                 </p>
               </div>
             </div>
-
             <div className="flex flex-col sm:flex-row gap-3">
               {!hasInstitution && (
                 <Link href="/app/instituicoes"
@@ -68,7 +66,7 @@ export default function EscolhaFichaPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
           {/* Ficha Anestésica */}
           {canCreate ? (
@@ -79,10 +77,10 @@ export default function EscolhaFichaPage() {
               </div>
               <h2 className="text-lg font-bold text-slate-900 mb-2">Ficha Anestésica</h2>
               <p className="text-sm text-slate-500 leading-relaxed">
-                Registro completo do procedimento anestésico com organograma de PA e FC, descrição e dados financeiros.
+                Registro completo do procedimento com organograma, descrição e dados financeiros.
               </p>
               <span className="mt-6 inline-block bg-primary-700 text-white text-sm font-medium px-6 py-2 rounded-lg group-hover:bg-primary-800 transition-colors">
-                Criar Ficha Anestésica
+                Criar Ficha
               </span>
             </Link>
           ) : (
@@ -91,11 +89,9 @@ export default function EscolhaFichaPage() {
                 <ClipboardList className="w-8 h-8 text-slate-400" />
               </div>
               <h2 className="text-lg font-bold text-slate-500 mb-2">Ficha Anestésica</h2>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Registro completo do procedimento anestésico com organograma de PA e FC, descrição e dados financeiros.
-              </p>
+              <p className="text-sm text-slate-400 leading-relaxed">Cadastro incompleto.</p>
               <span className="mt-6 inline-block bg-slate-200 text-slate-400 text-sm font-medium px-6 py-2 rounded-lg">
-                Cadastro incompleto
+                Indisponível
               </span>
             </div>
           )}
@@ -107,12 +103,12 @@ export default function EscolhaFichaPage() {
               <div className="w-16 h-16 bg-emerald-50 group-hover:bg-emerald-100 rounded-2xl flex items-center justify-center mb-5 transition-colors">
                 <Stethoscope className="w-8 h-8 text-emerald-700" />
               </div>
-              <h2 className="text-lg font-bold text-slate-900 mb-2">Consulta Pré-Anestésica</h2>
+              <h2 className="text-lg font-bold text-slate-900 mb-2">Pré-Anestésica</h2>
               <p className="text-sm text-slate-500 leading-relaxed">
-                Avaliação pré-anestésica com histórico clínico, exame físico, exames laboratoriais e orientações ao paciente.
+                Avaliação com histórico clínico, exame físico e orientações ao paciente.
               </p>
               <span className="mt-6 inline-block bg-emerald-700 text-white text-sm font-medium px-6 py-2 rounded-lg group-hover:bg-emerald-800 transition-colors">
-                Criar Consulta Pré-Anestésica
+                Criar Consulta
               </span>
             </Link>
           ) : (
@@ -120,15 +116,28 @@ export default function EscolhaFichaPage() {
               <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5">
                 <Stethoscope className="w-8 h-8 text-slate-400" />
               </div>
-              <h2 className="text-lg font-bold text-slate-500 mb-2">Consulta Pré-Anestésica</h2>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Avaliação pré-anestésica com histórico clínico, exame físico, exames laboratoriais e orientações ao paciente.
-              </p>
+              <h2 className="text-lg font-bold text-slate-500 mb-2">Pré-Anestésica</h2>
+              <p className="text-sm text-slate-400 leading-relaxed">Cadastro incompleto.</p>
               <span className="mt-6 inline-block bg-slate-200 text-slate-400 text-sm font-medium px-6 py-2 rounded-lg">
-                Cadastro incompleto
+                Indisponível
               </span>
             </div>
           )}
+
+          {/* Plantão — sempre disponível */}
+          <Link href="/app/plantoes"
+            className="group bg-white border-2 border-slate-200 hover:border-indigo-500 rounded-2xl p-8 flex flex-col items-center text-center transition-all hover:shadow-lg">
+            <div className="w-16 h-16 bg-indigo-50 group-hover:bg-indigo-100 rounded-2xl flex items-center justify-center mb-5 transition-colors">
+              <Moon className="w-8 h-8 text-indigo-700" />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 mb-2">Plantão</h2>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Lançamento de plantão com controle de valor e status de pagamento.
+            </p>
+            <span className="mt-6 inline-block bg-indigo-700 text-white text-sm font-medium px-6 py-2 rounded-lg group-hover:bg-indigo-800 transition-colors">
+              Lançar Plantão
+            </span>
+          </Link>
 
         </div>
       </div>
