@@ -27,8 +27,29 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
-  if (path.startsWith('/app')) {
+  // Rotas protegidas — exige autenticação
+  if (path.startsWith('/app') || path.startsWith('/grupo')) {
     if (!user) return NextResponse.redirect(new URL('/auth/login', request.url))
+
+    // Verifica aceitação dos termos (exceto na própria página de termos)
+    if (!path.startsWith('/app/termos')) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('terms_accepted_version')
+        .eq('id', user.id)
+        .single()
+
+      const { data: currentTerm } = await supabase
+        .from('terms_of_use')
+        .select('version')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (currentTerm && profile?.terms_accepted_version !== currentTerm.version) {
+        return NextResponse.redirect(new URL('/app/termos', request.url))
+      }
+    }
   }
 
   if ((path === '/auth/login' || path === '/auth/register') && user) {
@@ -39,5 +60,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/auth/login', '/auth/register', '/onboarding'],
+  matcher: ['/app/:path*', '/grupo/:path*', '/auth/login', '/auth/register', '/onboarding'],
 }
