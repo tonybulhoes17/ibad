@@ -15,8 +15,8 @@ const jetbrains = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'IBAD — Ficha Anestésica',
-  description: 'Sistema profissional de ficha anestésica digital para anestesiologistas',
+  title: 'AnestPrime — Plataforma do Anestesista',
+  description: 'Plataforma profissional completa para anestesiologistas — fichas, scores, financeiro e gestão em um só lugar.',
   manifest: '/manifest.json',
   icons: {
     icon: '/icons/icon-192.png',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'IBAD',
+    title: 'AnestPrime',
   },
   formatDetection: { telephone: false },
 }

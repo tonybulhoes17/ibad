@@ -9,9 +9,29 @@ import { getInitials } from '@/lib/utils'
 import {
   LayoutDashboard, FileText, Building2, Shield,
   BookOpen, DollarSign, User, LogOut, Menu, X,
-  Plus, ChevronRight, Stethoscope, Users, Ticket
+  Plus, ChevronRight, Users, Ticket
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+// Ícone laringoscópio SVG inline
+function LaringoscopioIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Lâmina curva do laringoscópio */}
+      <path d="M4 4 C4 4 6 3 10 5 C13 6.5 15 8 15 10 C15 11 14.5 11.5 14 11.5 L8 11.5" 
+        stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+      {/* Cabo */}
+      <rect x="13" y="10" width="3.5" height="10" rx="1.5" fill="currentColor"/>
+      {/* Junção lâmina/cabo */}
+      <rect x="12.5" y="9.5" width="4.5" height="2" rx="0.8" fill="currentColor"/>
+    </svg>
+  )
+}
 
 const NAV_ITEMS = [
   { href: '/app/dashboard',    label: 'Dashboard',       icon: LayoutDashboard },
@@ -24,8 +44,8 @@ const NAV_ITEMS = [
 ]
 
 const GRUPO_ITEMS = [
-  { href: '/grupo/criar',   label: 'Criar Grupo',    icon: Users },
-  { href: '/app/convite',   label: 'Usar Convite',   icon: Ticket },
+  { href: '/grupo/criar',  label: 'Criar Grupo',  icon: Users },
+  { href: '/app/convite',  label: 'Usar Convite', icon: Ticket },
 ]
 
 interface AppShellProps {
@@ -50,11 +70,11 @@ export function AppShell({ profile, children }: AppShellProps) {
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100">
         <div className="w-8 h-8 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
-          <Stethoscope className="w-4 h-4 text-white" />
+          <LaringoscopioIcon className="w-5 h-5 text-white" />
         </div>
         <div>
-          <p className="text-sm font-bold text-slate-900">IBAD</p>
-          <p className="text-xs text-slate-400">Ficha Anestésica</p>
+          <p className="text-sm font-bold text-slate-900">AnestPrime</p>
+          <p className="text-xs text-slate-400">Plataforma do Anestesista</p>
         </div>
       </div>
 
@@ -185,9 +205,9 @@ export function AppShell({ profile, children }: AppShellProps) {
           </button>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-primary-700 rounded-md flex items-center justify-center">
-              <Stethoscope className="w-3.5 h-3.5 text-white" />
+              <LaringoscopioIcon className="w-4 h-4 text-white" />
             </div>
-            <span className="text-sm font-bold text-slate-900">IBAD</span>
+            <span className="text-sm font-bold text-slate-900">AnestPrime</span>
           </div>
           <Link href="/app/nova-ficha" className="p-1.5 bg-primary-700 rounded-lg text-white">
             <Plus className="w-5 h-5" />
