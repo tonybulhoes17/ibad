@@ -17,7 +17,7 @@ const NAV_ITEMS = [
   { href: '/app/dashboard',    label: 'Dashboard',       icon: LayoutDashboard },
   { href: '/app/fichas',       label: 'Fichas',          icon: FileText },
   { href: '/app/scores', label: 'Scores', icon: Activity },
-  { href: '/app/plantoes',     label: 'Plantões',        icon: Moon },
+  
   { href: '/app/financeiro',   label: 'Financeiro',      icon: DollarSign },
   { href: '/app/instituicoes', label: 'Instituições',    icon: Building2 },
   { href: '/app/planos',       label: 'Planos de Saúde', icon: Shield },

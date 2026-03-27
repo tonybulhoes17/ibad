@@ -11,7 +11,7 @@ const SCORES = [
       { href: '/app/scores/asa', name: 'ASA', desc: 'Classificação do estado físico do paciente' },
       { href: '/app/scores/mallampati', name: 'Mallampati', desc: 'Predição de via aérea difícil' },
       { href: '/app/scores/apfel', name: 'Apfel (NVPO)', desc: 'Risco de náuseas e vômitos pós-operatórios' },
-      { href: '/app/scores/stop-bang', name: 'STOP-BANG', desc: 'Rastreio de apneia obstrutiva do sono', disabled: true },
+      { href: '/app/scores/stop-bang', name: 'STOP-BANG', desc: 'Rastreio de apneia obstrutiva do sono' },
       { href: '/app/scores/rcri', name: 'RCRI', desc: 'Risco cardíaco perioperatório revisado', disabled: true },
       { href: '/app/scores/caprini', name: 'Caprini (TEV)', desc: 'Risco de tromboembolismo venoso', disabled: true },
       { href: '/app/scores/lemon', name: 'LEMON', desc: 'Avaliação de via aérea difícil', disabled: true },
