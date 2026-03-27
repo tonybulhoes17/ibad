@@ -69,8 +69,8 @@ export function AppShell({ profile, children }: AppShellProps) {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100">
-        <div className="w-8 h-8 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
-          <LaringoscopioIcon className="w-5 h-5 text-white" />
+        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+          <img src="/icons/icon-192.png" alt="AnestPrime" className="w-full h-full object-cover" />
         </div>
         <div>
           <p className="text-sm font-bold text-slate-900">AnestPrime</p>
@@ -204,8 +204,8 @@ export function AppShell({ profile, children }: AppShellProps) {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-primary-700 rounded-md flex items-center justify-center">
-              <LaringoscopioIcon className="w-4 h-4 text-white" />
+            <div className="w-6 h-6 rounded-md overflow-hidden">
+              <img src="/icons/icon-192.png" alt="AnestPrime" className="w-full h-full object-cover" />
             </div>
             <span className="text-sm font-bold text-slate-900">AnestPrime</span>
           </div>
