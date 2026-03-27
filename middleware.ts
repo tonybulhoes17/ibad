@@ -27,7 +27,8 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
-  if (path.startsWith('/app') || path.startsWith('/grupo')) {
+  // Rotas que exigem autenticação
+  if (path.startsWith('/app') || path.startsWith('/grupo') || path === '/termos') {
     if (!user) return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
@@ -39,5 +40,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/grupo/:path*', '/auth/login', '/auth/register', '/onboarding'],
+  matcher: ['/app/:path*', '/grupo/:path*', '/termos', '/auth/login', '/auth/register', '/onboarding'],
 }

@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   // Se há um termo vigente e o usuário não aceitou a versão atual → redireciona
   if (currentTerm && profile?.terms_accepted_version !== currentTerm.version) {
-    redirect('/app/termos')
+    redirect('/termos')
   }
 
   return <AppShell profile={profile}>{children}</AppShell>
