@@ -9,13 +9,14 @@ import { getInitials } from '@/lib/utils'
 import {
   LayoutDashboard, FileText, Building2, Shield,
   BookOpen, DollarSign, User, LogOut, Menu, X,
-  Plus, ChevronRight, Users, Ticket, Moon
+  Plus, ChevronRight, Users, Ticket, Moon, Activity
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/app/dashboard',    label: 'Dashboard',       icon: LayoutDashboard },
   { href: '/app/fichas',       label: 'Fichas',          icon: FileText },
+  { href: '/app/scores', label: 'Scores', icon: Activity },
   { href: '/app/plantoes',     label: 'Plantões',        icon: Moon },
   { href: '/app/financeiro',   label: 'Financeiro',      icon: DollarSign },
   { href: '/app/instituicoes', label: 'Instituições',    icon: Building2 },
