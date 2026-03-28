@@ -110,7 +110,7 @@ export default function PlantoesPage() {
   const [form, setForm] = useState<FormState>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [autoEditDone, setAutoEditDone] = useState(false)
-  const [view, setView] = useState<'lista' | 'calendario'>('lista')
+  const [view, setView] = useState<'lista' | 'calendario'>('calendario')
   const [mesAtual, setMesAtual] = useState(new Date())
   const [confirmRecorrencia, setConfirmRecorrencia] = useState<{ novas: string[], conflitos: string[] } | null>(null)
 
@@ -492,7 +492,7 @@ export default function PlantoesPage() {
               </div>
             )}
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-1 flex-wrap">
               <button type="submit" disabled={saving} className="btn-primary flex items-center gap-2 text-sm">
                 {saving && <Loader2 className="w-3 h-3 animate-spin" />}
                 {saving ? 'Salvando...' : isEditing ? 'Salvar Alterações' : form.recorrente ? 'Gerar Plantões' : 'Salvar Plantão'}
@@ -500,6 +500,13 @@ export default function PlantoesPage() {
               <button type="button" onClick={cancelForm} className="btn-secondary text-sm flex items-center gap-1">
                 <X className="w-3 h-3" /> Cancelar
               </button>
+              {isEditing && (
+                <button type="button"
+                  onClick={async () => { if (editingId) { await handleDelete(editingId); cancelForm() } }}
+                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" /> Excluir Plantão
+                </button>
+              )}
             </div>
           </form>
         </div>
