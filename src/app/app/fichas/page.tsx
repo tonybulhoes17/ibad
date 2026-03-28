@@ -20,6 +20,7 @@ interface UnifiedRecord {
   patient_cpf: string | null
   procedure_date: string
   surgery_name: string | null
+  surgeon: string | null
   institution_name: string | null
   plan_name: string | null
   anesthesia_type: string | null
@@ -59,7 +60,7 @@ export default function FichasPage() {
     const [{ data: anesthesia }, { data: consultations }, { data: shifts }] = await Promise.all([
       supabase.from('anesthesia_records').select('*, institutions(name), insurance_plans(name)')
         .eq('user_id', user.id).is('group_id', null).order('procedure_date', { ascending: false }),
-      supabase.from('consultation_records').select('*, institutions(name), insurance_plans(name)')
+      supabase.from('consultation_records').select('*, institutions(name), insurance_plans(name), surgeon')
         .eq('user_id', user.id).is('group_id', null).order('consultation_date', { ascending: false }),
       supabase.from('shifts').select('*, institutions(name)')
         .eq('user_id', user.id).order('shift_date', { ascending: false }),
@@ -69,6 +70,7 @@ export default function FichasPage() {
       id: r.id, type: 'anesthesia',
       patient_name: r.patient_name, patient_cpf: r.patient_cpf,
       procedure_date: r.procedure_date, surgery_name: r.surgery_name,
+      surgeon: null,
       institution_name: r.institutions?.name ?? null, plan_name: r.insurance_plans?.name ?? null,
       anesthesia_type: r.anesthesia_type, surgery_value: r.surgery_value,
       is_paid: r.is_paid, has_glosa: r.has_glosa,
@@ -79,6 +81,7 @@ export default function FichasPage() {
       id: r.id, type: 'consultation',
       patient_name: r.patient_name, patient_cpf: r.patient_cpf,
       procedure_date: r.consultation_date, surgery_name: r.surgery_name,
+      surgeon: r.surgeon ?? null,
       institution_name: r.institutions?.name ?? null, plan_name: r.insurance_plans?.name ?? null,
       anesthesia_type: null, surgery_value: r.surgery_value,
       is_paid: r.is_paid, has_glosa: r.has_glosa,
@@ -91,6 +94,7 @@ export default function FichasPage() {
       patient_cpf: null,
       procedure_date: r.shift_date,
       surgery_name: r.shift_type,
+      surgeon: null,
       institution_name: r.institution_name ?? r.institutions?.name ?? null,
       plan_name: null, anesthesia_type: null,
       surgery_value: r.value,
@@ -172,7 +176,7 @@ export default function FichasPage() {
         <td>${tipoLabel(r)}</td>
         <td>${formatDate(r.procedure_date)}</td>
         <td><strong>${r.patient_name}</strong>${r.patient_cpf ? `<br/><small>${r.patient_cpf}</small>` : ''}</td>
-        <td>${r.surgery_name ?? '—'}</td>
+        <td>${r.surgery_name ?? '—'}${r.type === 'consultation' && r.surgeon ? `<br/><small style="color:#64748B">Cir: ${r.surgeon}</small>` : ''}</td>
         <td>${r.institution_name ?? '—'}</td>
         <td>${r.plan_name ?? '—'}</td>
         <td style="text-align:right">${formatCurrency(r.surgery_value)}</td>
@@ -186,7 +190,7 @@ export default function FichasPage() {
       </tr>`).join('')
     win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/>
       <title>Lista de Procedimentos — AnestPrime</title>
-      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10px;color:#1E293B;padding:12mm}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1A56A0;padding-bottom:8px;margin-bottom:10px}h1{font-size:16px;color:#1A56A0;margin-bottom:2px}.sub{font-size:9px;color:#64748B}.ibad{font-size:9px;color:#94A3B8;text-align:right}table{width:100%;border-collapse:collapse;margin-bottom:10px}th{background:#1A56A0;color:white;text-align:left;padding:5px 7px;font-size:8.5px;text-transform:uppercase}td{padding:5px 7px;border-bottom:1px solid #F1F5F9;vertical-align:middle;font-size:9.5px}small{color:#94A3B8;font-size:8px}.footer{display:flex;justify-content:space-between;font-size:8.5px;color:#94A3B8;margin-top:8px;border-top:1px solid #E2E8F0;padding-top:6px}@media print{@page{size:A4 landscape;margin:10mm}}</style>
+      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10px;color:#1E293B;padding:12mm}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1A56A0;padding-bottom:8px;margin-bottom:10px}h1{font-size:16px;color:#1A56A0;margin-bottom:2px}.sub{font-size:9px;color:#64748B}.ibad{font-size:9px;color:#94A3B8;text-align:right}table{width:100%;border-collapse:collapse;margin-bottom:10px}th{background:#1A56A0;color:white;text-align:left;padding:5px 7px;font-size:8.5px;text-transform:uppercase}td{padding:5px 7px;border-bottom:1px solid #F1F5F9;vertical-align:middle;font-size:9.5px}small{color:#64748B;font-size:8px}.footer{display:flex;justify-content:space-between;font-size:8.5px;color:#94A3B8;margin-top:8px;border-top:1px solid #E2E8F0;padding-top:6px}@media print{@page{size:A4 landscape;margin:10mm}}</style>
       </head><body>
       <div class="header"><div><h1>Lista de Procedimentos — AnestPrime</h1><div class="sub">${filtered.length} registro${filtered.length !== 1 ? 's' : ''}</div></div>
       <div class="ibad">AnestPrime — Plataforma do Anestesista<br/>Gerado em ${new Date().toLocaleDateString('pt-BR')}</div></div>
@@ -232,7 +236,6 @@ export default function FichasPage() {
         </div>
       </div>
 
-      {/* Tipo rápido */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {[
           { value: 'all', label: 'Todos' },
@@ -251,7 +254,6 @@ export default function FichasPage() {
         ))}
       </div>
 
-      {/* Search + Filter */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -350,7 +352,12 @@ export default function FichasPage() {
                         <div className="font-medium text-slate-900">{r.patient_name}</div>
                         {r.patient_cpf && <div className="text-xs text-slate-400 font-mono">{r.patient_cpf}</div>}
                       </td>
-                      <td className="px-3 py-3 text-slate-600 max-w-[140px] truncate text-xs">{r.surgery_name ?? '—'}</td>
+                      <td className="px-3 py-3 text-slate-600 max-w-[140px] text-xs">
+                        <div className="truncate">{r.surgery_name ?? '—'}</div>
+                        {r.type === 'consultation' && r.surgeon && (
+                          <div className="text-xs text-slate-400 truncate">Cir: {r.surgeon}</div>
+                        )}
+                      </td>
                       <td className="px-3 py-3 text-slate-500 text-xs">{r.institution_name ?? '—'}</td>
                       <td className="px-3 py-3 text-slate-500 text-xs">{r.plan_name ?? '—'}</td>
                       <td className="px-3 py-3">
@@ -400,7 +407,6 @@ export default function FichasPage() {
             </table>
           </div>
 
-          {/* Mobile Cards */}
           <div className="space-y-3 md:hidden">
             {filtered.map(r => (
               <div key={r.id} className="card p-4">
@@ -409,6 +415,9 @@ export default function FichasPage() {
                     <div className="mb-1"><TypeBadge type={r.type} /></div>
                     <p className="font-semibold text-slate-900">{r.patient_name}</p>
                     <p className="text-xs text-slate-500">{r.surgery_name ?? '—'}</p>
+                    {r.type === 'consultation' && r.surgeon && (
+                      <p className="text-xs text-slate-400">Cir: {r.surgeon}</p>
+                    )}
                   </div>
                   <button onClick={() => togglePagamento(r)} disabled={updatingId === r.id} className="flex-shrink-0">
                     {updatingId === r.id ? <span className="text-xs text-slate-400">...</span>
