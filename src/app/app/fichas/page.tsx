@@ -395,6 +395,11 @@ export default function FichasPage() {
                               )}
                             </>
                           )}
+                          {r.type === 'shift' && (
+                            <Link href="/app/plantoes" className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600" title="Editar plantão">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Link>
+                          )}
                           <button onClick={() => handleDelete(r)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
