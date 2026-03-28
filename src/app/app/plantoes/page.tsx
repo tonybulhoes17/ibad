@@ -1,5 +1,5 @@
 'use client'
-
+import { useSearchParams } from 'next/navigation'
 import { useState, useEffect, useCallback } from 'react'
 import { useInstituicoes } from '@/hooks'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -56,7 +56,7 @@ export default function PlantoesPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
-
+  const searchParams = useSearchParams()
   const fetchAll = useCallback(async () => {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
@@ -71,6 +71,13 @@ export default function PlantoesPage() {
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])
+  useEffect(() => {
+    const editId = searchParams.get('edit')
+    if (editId && shifts.length > 0) {
+      const shift = shifts.find(s => s.id === editId)
+      if (shift) startEdit(shift)
+    }
+  }, [searchParams, shifts, instituicoes])
 
   function handleInstituicaoChange(id: string) {
     const inst = instituicoes.find(i => i.id === id)
