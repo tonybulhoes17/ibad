@@ -133,7 +133,6 @@ export function DashboardClient() {
     })
   }, [filteredByType])
 
-  // Gráfico por quantidade de procedimentos por instituição
   const byInstCount = useMemo(() => {
     const map = new Map<string, number>()
     stats.filtered.forEach(r => {
@@ -146,7 +145,6 @@ export function DashboardClient() {
       .slice(0, 6)
   }, [stats.filtered])
 
-  // Gráfico por valor gerado por instituição
   const byInstValue = useMemo(() => {
     const map = new Map<string, number>()
     stats.filtered.forEach(r => {
@@ -160,8 +158,6 @@ export function DashboardClient() {
   }, [stats.filtered])
 
   const recentRecords = filteredByType.slice(0, 5)
-
-  // Formata valor ocultando se necessário
   const fmtVal = (v: number | null) => hideValues ? '••••••' : formatCurrency(v)
 
   if (loading) {
@@ -184,7 +180,6 @@ export function DashboardClient() {
           <p className="text-sm text-slate-500">Resumo da sua produção</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Botão ocultar valores */}
           <button
             onClick={() => setHideValues(!hideValues)}
             title={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
@@ -195,17 +190,13 @@ export function DashboardClient() {
             }`}>
             {hideValues ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
-          <CopyLinkButton />
-          <Link href="/app/plantoes" className="btn-secondary flex items-center gap-2 text-sm hidden sm:flex">
-            <Moon className="w-4 h-4" /> Lançar Plantão
-          </Link>
           <Link href="/app/nova-ficha" className="btn-primary flex items-center gap-2 text-sm hidden sm:flex">
             <Plus className="w-4 h-4" /> Nova Ficha
           </Link>
         </div>
       </div>
 
-      {/* Filtros: Período + Tipo */}
+      {/* Filtros */}
       <div className="flex flex-wrap gap-2 mb-5">
         {(['week', 'month', 'year'] as const).map(p => (
           <button key={p} onClick={() => setPeriod(p)}
@@ -255,7 +246,7 @@ export function DashboardClient() {
         <StatCard icon={<AlertCircle className="w-4 h-4" />} label="Pendente" value={fmtVal(stats.pending)} color="amber" />
       </div>
 
-      {/* Charts — Produção últimos 6 meses */}
+      {/* Charts — Últimos 6 meses */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="card p-4">
           <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
@@ -271,7 +262,6 @@ export function DashboardClient() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-
         <div className="card p-4">
           <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-emerald-600" /> Valor Gerado — Últimos 6 meses
@@ -311,7 +301,6 @@ export function DashboardClient() {
             </ResponsiveContainer>
           )}
         </div>
-
         <div className="card p-4">
           <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-emerald-600" /> Valor Gerado por Instituição
@@ -392,29 +381,6 @@ export function DashboardClient() {
       </div>
 
     </div>
-  )
-}
-
-function CopyLinkButton() {
-  const [copied, setCopied] = useState(false)
-  const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/pre-consulta`
-
-  function handleCopy() {
-    navigator.clipboard.writeText(url)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  return (
-    <button onClick={handleCopy}
-      title="Copiar link da pré-consulta para pacientes"
-      className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-        copied
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-          : 'bg-white text-slate-500 border-slate-200 hover:border-primary-300 hover:text-primary-600'
-      }`}>
-      {copied ? '✓ Link copiado!' : '🔗 Link pré-consulta'}
-    </button>
   )
 }
 

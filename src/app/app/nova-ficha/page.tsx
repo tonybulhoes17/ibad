@@ -1,17 +1,26 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, ClipboardList, Stethoscope, AlertTriangle, Building2, Shield, Moon } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, ClipboardList, Stethoscope, AlertTriangle, Building2, Shield, Moon, Link as LinkIcon } from 'lucide-react'
 import { useInstituicoes, usePlanos } from '@/hooks'
 
 export default function EscolhaFichaPage() {
   const { instituicoes, loading: loadingInst } = useInstituicoes()
   const { planos, loading: loadingPlanos } = usePlanos()
+  const [copied, setCopied] = useState(false)
 
   const loading = loadingInst || loadingPlanos
   const hasInstitution = instituicoes.length > 0
   const hasPlan = planos.length > 0
   const canCreate = hasInstitution && hasPlan
+
+  function handleCopyLink() {
+    const url = `${window.location.origin}/pre-consulta`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (loading) {
     return (
@@ -25,15 +34,27 @@ export default function EscolhaFichaPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-3xl">
 
-        {/* Voltar */}
         <Link href="/app/fichas" className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-700 mb-8 text-sm">
           <ArrowLeft className="w-4 h-4" /> Voltar para fichas
         </Link>
 
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Novo Lançamento</h1>
-        <p className="text-slate-500 mb-6">Selecione o tipo de registro que deseja criar</p>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Novo Lançamento</h1>
+            <p className="text-slate-500">Selecione o tipo de registro que deseja criar</p>
+          </div>
+          {/* Link pré-consulta */}
+          <button onClick={handleCopyLink}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-colors flex-shrink-0 ${
+              copied
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-primary-300 hover:text-primary-600'
+            }`}>
+            <LinkIcon className="w-4 h-4" />
+            {copied ? '✓ Link copiado!' : 'Link pré-consulta'}
+          </button>
+        </div>
 
-        {/* Aviso bloqueante */}
         {!canCreate && (
           <div className="bg-amber-50 border border-amber-300 rounded-2xl p-6 mb-6">
             <div className="flex items-start gap-3 mb-4">
@@ -68,7 +89,6 @@ export default function EscolhaFichaPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-          {/* Ficha Anestésica */}
           {canCreate ? (
             <Link href="/app/fichas/nova"
               className="group bg-white border-2 border-slate-200 hover:border-primary-500 rounded-2xl p-8 flex flex-col items-center text-center transition-all hover:shadow-lg">
@@ -90,13 +110,10 @@ export default function EscolhaFichaPage() {
               </div>
               <h2 className="text-lg font-bold text-slate-500 mb-2">Ficha Anestésica</h2>
               <p className="text-sm text-slate-400 leading-relaxed">Cadastro incompleto.</p>
-              <span className="mt-6 inline-block bg-slate-200 text-slate-400 text-sm font-medium px-6 py-2 rounded-lg">
-                Indisponível
-              </span>
+              <span className="mt-6 inline-block bg-slate-200 text-slate-400 text-sm font-medium px-6 py-2 rounded-lg">Indisponível</span>
             </div>
           )}
 
-          {/* Consulta Pré-Anestésica */}
           {canCreate ? (
             <Link href="/app/consultas/nova"
               className="group bg-white border-2 border-slate-200 hover:border-emerald-500 rounded-2xl p-8 flex flex-col items-center text-center transition-all hover:shadow-lg">
@@ -118,13 +135,10 @@ export default function EscolhaFichaPage() {
               </div>
               <h2 className="text-lg font-bold text-slate-500 mb-2">Pré-Anestésica</h2>
               <p className="text-sm text-slate-400 leading-relaxed">Cadastro incompleto.</p>
-              <span className="mt-6 inline-block bg-slate-200 text-slate-400 text-sm font-medium px-6 py-2 rounded-lg">
-                Indisponível
-              </span>
+              <span className="mt-6 inline-block bg-slate-200 text-slate-400 text-sm font-medium px-6 py-2 rounded-lg">Indisponível</span>
             </div>
           )}
 
-          {/* Plantão — sempre disponível */}
           <Link href="/app/plantoes"
             className="group bg-white border-2 border-slate-200 hover:border-indigo-500 rounded-2xl p-8 flex flex-col items-center text-center transition-all hover:shadow-lg">
             <div className="w-16 h-16 bg-indigo-50 group-hover:bg-indigo-100 rounded-2xl flex items-center justify-center mb-5 transition-colors">

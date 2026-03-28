@@ -602,7 +602,7 @@ export default function PlantoesPage() {
                               setMesAtual(dia)
                               startEdit(s)
                             }}
-                            className={`w-full text-left px-1.5 py-0.5 rounded text-xs font-medium truncate transition-colors ${s.is_paid ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'}`}
+                            className={`w-full text-left px-1 py-0.5 rounded text-[10px] font-medium truncate transition-colors ${s.is_paid ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'}`}
                             title={`${s.institution_name} — ${shiftTypeLabel(s.shift_type)} — ${formatCurrency(s.value)}`}>
                             {s.institution_name?.slice(0, 12) ?? 'Plantão'}
                           </button>
