@@ -396,7 +396,7 @@ export default function FichasPage() {
                             </>
                           )}
                           {r.type === 'shift' && (
-                            <Link href="/app/plantoes" className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600" title="Editar plantão">
+                            <Link href={`/app/plantoes?edit=${r.id}`} className="p-1.5 rounded hover:bg-primary-50 text-slate-400 hover:text-primary-600" title="Editar plantão">
                               <Pencil className="w-3.5 h-3.5" />
                             </Link>
                           )}
