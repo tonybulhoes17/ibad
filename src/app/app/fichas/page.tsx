@@ -7,7 +7,7 @@ import { formatDate, formatCurrency } from '@/lib/utils'
 import {
   Search, Plus, Printer, Eye, Edit2, Trash2,
   Filter, X, Calendar, CheckCircle2, Clock, AlertTriangle,
-  Stethoscope, ClipboardList, Moon
+  Stethoscope, ClipboardList, Moon, Pencil
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
