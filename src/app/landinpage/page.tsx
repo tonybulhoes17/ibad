@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 export const metadata = {
@@ -32,7 +31,6 @@ export default function LandingPage() {
           --card-border: rgba(255,255,255,0.08);
         }
 
-        /* NAV */
         .lp-nav {
           position: fixed; top: 0; left: 0; right: 0; z-index: 100;
           padding: 1.2rem 2rem;
@@ -52,7 +50,6 @@ export default function LandingPage() {
         }
         .lp-nav-cta:hover { background: #14B8A8; }
 
-        /* HERO */
         .lp-hero {
           position: relative; min-height: 100vh;
           display: flex; align-items: center; justify-content: center;
@@ -81,10 +78,7 @@ export default function LandingPage() {
           gap: 0.8rem; margin-bottom: 2rem;
         }
         .lp-hero-logo img { width: 64px; height: 64px; border-radius: 16px; }
-        .lp-hero-logo-name {
-          font-family: 'Instrument Serif', serif; font-size: 2.2rem;
-          color: #F8F9FA; letter-spacing: -0.02em;
-        }
+        .lp-hero-logo-name { font-family: 'Instrument Serif', serif; font-size: 2.2rem; color: #F8F9FA; letter-spacing: -0.02em; }
         .lp-hero-logo-name span { color: #14B8A8; }
         .lp-hero-title {
           font-family: 'Instrument Serif', serif;
@@ -93,10 +87,7 @@ export default function LandingPage() {
         }
         .lp-hero-title em { font-style: italic; color: #14B8A8; }
         .lp-hero-title .gold { color: #F0C060; }
-        .lp-hero-sub {
-          font-size: clamp(1rem, 2vw, 1.15rem); color: #94A3B8;
-          max-width: 560px; margin: 0 auto 2.5rem; line-height: 1.7;
-        }
+        .lp-hero-sub { font-size: clamp(1rem, 2vw, 1.15rem); color: #94A3B8; max-width: 560px; margin: 0 auto 2.5rem; line-height: 1.7; }
         .lp-ctas { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
         .lp-btn-primary {
           background: #0D9488; color: white; text-decoration: none;
@@ -118,7 +109,6 @@ export default function LandingPage() {
         }
         .lp-dot { width: 6px; height: 6px; border-radius: 50%; background: #14B8A8; flex-shrink: 0; }
 
-        /* CONTAINER */
         .lp-container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
         .lp-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent); margin: 0 2rem; }
 
@@ -130,14 +120,62 @@ export default function LandingPage() {
           border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden;
         }
         .lp-stat { background: #0B1929; padding: 2.5rem 2rem; text-align: center; }
-        .lp-stat-num {
-          font-family: 'Instrument Serif', serif; font-size: 2.5rem;
-          color: #14B8A8; line-height: 1; margin-bottom: 0.4rem;
-        }
+        .lp-stat-num { font-family: 'Instrument Serif', serif; font-size: 2.5rem; color: #14B8A8; line-height: 1; margin-bottom: 0.4rem; }
         .lp-stat-label { font-size: 0.82rem; color: #94A3B8; line-height: 1.4; }
 
-        /* FEATURES */
-        .lp-features { padding: 7rem 0; }
+        /* PWA SECTION */
+        .lp-pwa { padding: 6rem 0; }
+        .lp-pwa-block {
+          background: linear-gradient(135deg, rgba(13,148,136,0.08) 0%, rgba(11,25,41,0) 60%);
+          border: 1px solid rgba(13,148,136,0.2); border-radius: 24px; padding: 4rem;
+          display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+          position: relative; overflow: hidden;
+        }
+        .lp-pwa-block::before {
+          content: ''; position: absolute; inset: 0;
+          background: radial-gradient(ellipse at 0% 50%, rgba(13,148,136,0.08) 0%, transparent 60%);
+        }
+        .lp-pwa-text { position: relative; }
+        .lp-pwa-block h2 {
+          font-family: 'Instrument Serif', serif; font-size: clamp(1.8rem, 3vw, 2.6rem);
+          line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 1.2rem;
+        }
+        .lp-pwa-block h2 em { font-style: italic; color: #14B8A8; }
+        .lp-pwa-block p { color: #94A3B8; line-height: 1.75; font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .lp-pwa-devices {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;
+        }
+        .lp-pwa-device {
+          background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px; padding: 1.2rem; text-align: center;
+        }
+        .lp-pwa-device .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .lp-pwa-device h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.3rem; }
+        .lp-pwa-device p { font-size: 0.75rem; color: #94A3B8; margin: 0; line-height: 1.4; }
+        .lp-pwa-visual { position: relative; }
+        .lp-pwa-phones {
+          display: flex; align-items: flex-end; justify-content: center;
+          gap: 1rem; position: relative;
+        }
+        .lp-phone-frame {
+          background: #112236; border: 2px solid rgba(255,255,255,0.1);
+          border-radius: 20px; overflow: hidden;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .lp-phone-frame img { display: block; width: 100%; }
+        .lp-phone-main { width: 200px; }
+        .lp-phone-secondary { width: 160px; opacity: 0.7; margin-bottom: 20px; }
+        .lp-notebook-frame {
+          background: #112236; border: 2px solid rgba(255,255,255,0.1);
+          border-radius: 12px; overflow: hidden;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+          margin-top: -30px;
+        }
+        .lp-notebook-frame img { display: block; width: 100%; }
+
+        /* SCREENSHOTS */
+        .lp-screenshots { padding: 6rem 0; }
+        .lp-screenshots-header { text-align: center; margin-bottom: 4rem; }
         .lp-section-label {
           display: inline-block; color: #14B8A8; font-size: 0.75rem;
           font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;
@@ -148,13 +186,26 @@ export default function LandingPage() {
           letter-spacing: -0.02em; margin-bottom: 1rem;
         }
         .lp-section-title em { font-style: italic; color: #14B8A8; }
-        .lp-features-header { text-align: center; margin-bottom: 4rem; }
-        .lp-features-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;
+        .lp-screens-grid {
+          display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;
         }
+        .lp-screen-item {
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 20px; overflow: hidden; transition: all 0.3s;
+        }
+        .lp-screen-item:hover { border-color: rgba(13,148,136,0.3); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .lp-screen-img { width: 100%; display: block; }
+        .lp-screen-caption { padding: 1.2rem 1.5rem; }
+        .lp-screen-caption h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; }
+        .lp-screen-caption p { font-size: 0.8rem; color: #94A3B8; line-height: 1.5; }
+
+        /* FEATURES */
+        .lp-features { padding: 7rem 0; }
+        .lp-features-header { text-align: center; margin-bottom: 4rem; }
+        .lp-features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
         .lp-card {
           background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 16px; padding: 2rem; transition: all 0.3s; position: relative; overflow: hidden;
+          border-radius: 16px; padding: 2rem; transition: all 0.3s;
         }
         .lp-card:hover { border-color: rgba(13,148,136,0.35); transform: translateY(-3px); }
         .lp-card-icon {
@@ -191,15 +242,8 @@ export default function LandingPage() {
         .lp-highlight-block h2 em { font-style: italic; color: #F0C060; }
         .lp-highlight-block p { color: #94A3B8; line-height: 1.75; font-size: 0.92rem; margin-bottom: 0.6rem; }
         .lp-check-list { list-style: none; margin-top: 1.2rem; }
-        .lp-check-list li {
-          display: flex; align-items: flex-start; gap: 0.6rem;
-          font-size: 0.88rem; color: #CBD5E1; margin-bottom: 0.6rem;
-        }
-        .lp-check {
-          width: 18px; height: 18px; background: rgba(13,148,136,0.2);
-          border-radius: 50%; display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0; margin-top: 1px; font-size: 9px; color: #14B8A8;
-        }
+        .lp-check-list li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.88rem; color: #CBD5E1; margin-bottom: 0.6rem; }
+        .lp-check { width: 18px; height: 18px; background: rgba(13,148,136,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-size: 9px; color: #14B8A8; }
 
         /* GROUP */
         .lp-group { padding: 6rem 0; }
@@ -212,34 +256,16 @@ export default function LandingPage() {
           content: ''; position: absolute; inset: 0;
           background: radial-gradient(ellipse at 50% 0%, rgba(212,168,67,0.07) 0%, transparent 60%);
         }
-        .lp-group-block h2 {
-          font-family: 'Instrument Serif', serif; font-size: clamp(2rem, 4vw, 3rem);
-          letter-spacing: -0.02em; margin-bottom: 1.2rem; position: relative;
-        }
+        .lp-group-block h2 { font-family: 'Instrument Serif', serif; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.02em; margin-bottom: 1.2rem; position: relative; }
         .lp-group-block h2 em { font-style: italic; color: #F0C060; }
-        .lp-group-block p {
-          color: #94A3B8; font-size: 1rem; line-height: 1.75;
-          max-width: 600px; margin: 0 auto 1.5rem; position: relative;
-        }
+        .lp-group-block p { color: #94A3B8; font-size: 1rem; line-height: 1.75; max-width: 600px; margin: 0 auto 1.5rem; position: relative; }
         .lp-chips { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.8rem; position: relative; }
-        .lp-chip {
-          background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.2);
-          color: #F0C060; font-size: 0.82rem; font-weight: 500;
-          padding: 0.45rem 1rem; border-radius: 999px;
-        }
+        .lp-chip { background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.2); color: #F0C060; font-size: 0.82rem; font-weight: 500; padding: 0.45rem 1rem; border-radius: 999px; }
 
         /* MADE BY */
         .lp-madeby { padding: 4rem 0; text-align: center; }
-        .lp-madeby-badge {
-          display: inline-flex; align-items: center; gap: 0.5rem;
-          background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.25);
-          padding: 0.7rem 1.5rem; border-radius: 999px;
-          font-size: 0.9rem; color: #F0C060; font-weight: 600;
-        }
-        .lp-madeby p {
-          color: #94A3B8; font-size: 0.95rem; margin-top: 1.2rem;
-          max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.75;
-        }
+        .lp-madeby-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.25); padding: 0.7rem 1.5rem; border-radius: 999px; font-size: 0.9rem; color: #F0C060; font-weight: 600; }
+        .lp-madeby p { color: #94A3B8; font-size: 0.95rem; margin-top: 1.2rem; max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.75; }
 
         /* CTA */
         .lp-cta-section { padding: 6rem 0; }
@@ -253,33 +279,24 @@ export default function LandingPage() {
           background: radial-gradient(ellipse, rgba(13,148,136,0.12) 0%, transparent 70%);
           top: -150px; left: 50%; transform: translateX(-50%); pointer-events: none;
         }
-        .lp-cta-inner h2 {
-          font-family: 'Instrument Serif', serif; font-size: clamp(2rem, 5vw, 3.5rem);
-          letter-spacing: -0.02em; margin-bottom: 1rem; position: relative;
-        }
+        .lp-cta-inner h2 { font-family: 'Instrument Serif', serif; font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.02em; margin-bottom: 1rem; position: relative; }
         .lp-cta-inner h2 em { font-style: italic; color: #14B8A8; }
-        .lp-cta-inner p {
-          color: #94A3B8; font-size: 1.05rem; margin-bottom: 2.5rem;
-          max-width: 480px; margin-left: auto; margin-right: auto; position: relative;
-        }
-        .lp-cta-url {
-          display: block; margin-top: 1.5rem;
-          font-size: 1rem; font-weight: 700; color: #14B8A8; letter-spacing: 0.02em;
-          position: relative;
-        }
+        .lp-cta-inner p { color: #94A3B8; font-size: 1.05rem; margin-bottom: 2.5rem; max-width: 480px; margin-left: auto; margin-right: auto; position: relative; }
+        .lp-cta-url { display: block; margin-top: 1.5rem; font-size: 1rem; font-weight: 700; color: #14B8A8; letter-spacing: 0.02em; position: relative; }
 
-        /* FOOTER */
         .lp-footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 2rem; text-align: center; }
         .lp-footer p { color: #94A3B8; font-size: 0.82rem; }
         .lp-footer a { color: #14B8A8; text-decoration: none; }
 
-        /* RESPONSIVE */
         @media (max-width: 768px) {
           .lp-nav { padding: 1rem; }
+          .lp-pwa-block { grid-template-columns: 1fr; gap: 2.5rem; padding: 2.5rem 1.5rem; }
+          .lp-screens-grid { grid-template-columns: 1fr; }
           .lp-highlight-block { grid-template-columns: 1fr; gap: 2.5rem; padding: 2.5rem 1.5rem; }
           .lp-stats-grid { grid-template-columns: repeat(2, 1fr); }
           .lp-group-block { padding: 2.5rem 1.5rem; }
           .lp-cta-inner { padding: 3rem 1.5rem; }
+          .lp-pwa-devices { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
 
@@ -309,17 +326,18 @@ export default function LandingPage() {
               <span className="gold">moderno</span>
             </h1>
             <p className="lp-hero-sub">
-              Fichas anestésicas digitais, gestão financeira, consultas pré-anestésicas, controle de plantões e scores clínicos — tudo na palma da mão.
+              Fichas anestésicas digitais, gestão financeira, consultas pré-anestésicas, controle de plantões e scores clínicos — no notebook ou no celular, onde você estiver.
             </p>
             <div className="lp-ctas">
               <Link href="/auth/login" className="lp-btn-primary">Começar agora →</Link>
-              <a href="#funcionalidades" className="lp-btn-ghost">Ver funcionalidades</a>
+              <a href="#na-pratica" className="lp-btn-ghost">Ver na prática</a>
             </div>
             <div className="lp-devices">
               <div className="lp-device-tag"><span className="lp-dot" /> Android</div>
               <div className="lp-device-tag"><span className="lp-dot" /> iPhone</div>
               <div className="lp-device-tag"><span className="lp-dot" /> Notebook</div>
-              <div className="lp-device-tag"><span className="lp-dot" /> Acesso remoto 24/7</div>
+              <div className="lp-device-tag"><span className="lp-dot" /> Instala como app</div>
+              <div className="lp-device-tag"><span className="lp-dot" /> Acesso 24/7</div>
             </div>
           </div>
         </section>
@@ -340,11 +358,113 @@ export default function LandingPage() {
               </div>
               <div className="lp-stat">
                 <div className="lp-stat-num">100%</div>
-                <div className="lp-stat-label">Web — sem app<br />para instalar</div>
+                <div className="lp-stat-label">Web — funciona<br />sem instalar nada</div>
               </div>
               <div className="lp-stat">
                 <div className="lp-stat-num">24/7</div>
                 <div className="lp-stat-label">Acesso de<br />qualquer lugar</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="lp-divider" />
+
+        {/* PWA — ACESSO MULTIPLATAFORMA */}
+        <section className="lp-pwa">
+          <div className="lp-container">
+            <div className="lp-pwa-block">
+              <div className="lp-pwa-text">
+                <span className="lp-section-label">Multiplataforma</span>
+                <h2>No celular ou notebook,<br /><em>sempre com você</em></h2>
+                <p>
+                  O AnestPrime funciona em qualquer dispositivo com internet — Android, iPhone ou computador. Sem instalar app da loja, sem burocracia.
+                </p>
+                <p>
+                  Abra o site, faça login e já está funcionando. E se quiser ter o ícone na tela inicial como qualquer app, é só um clique — o próprio site te pergunta se quer instalar.
+                </p>
+                <div className="lp-pwa-devices">
+                  <div className="lp-pwa-device">
+                    <div className="icon">🤖</div>
+                    <h4>Android</h4>
+                    <p>Banner automático para instalar na tela inicial com 1 toque</p>
+                  </div>
+                  <div className="lp-pwa-device">
+                    <div className="icon">🍎</div>
+                    <h4>iPhone</h4>
+                    <p>Instruções na tela para adicionar ao Safari em segundos</p>
+                  </div>
+                  <div className="lp-pwa-device">
+                    <div className="icon">💻</div>
+                    <h4>Notebook</h4>
+                    <p>Acesse direto pelo navegador — Chrome, Edge ou Safari</p>
+                  </div>
+                  <div className="lp-pwa-device">
+                    <div className="icon">📶</div>
+                    <h4>Sem internet</h4>
+                    <p>Parte do conteúdo fica disponível mesmo offline</p>
+                  </div>
+                </div>
+              </div>
+              <div className="lp-pwa-visual">
+                <div style={{display:'flex', flexDirection:'column', gap:'1rem', alignItems:'center'}}>
+                  <div className="lp-phone-frame lp-phone-main">
+                    <img src="/icons/scores.png" alt="AnestPrime no celular — Scores" className="lp-screen-img" />
+                  </div>
+                  <div style={{display:'flex', gap:'1rem', alignItems:'flex-start'}}>
+                    <div className="lp-phone-frame" style={{width:150}}>
+                      <img src="/icons/plantoes.png" alt="Plantões no celular" className="lp-screen-img" />
+                    </div>
+                    <div className="lp-notebook-frame" style={{width:180, marginTop:30}}>
+                      <img src="/icons/dashboard.png" alt="Dashboard no notebook" className="lp-screen-img" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="lp-divider" />
+
+        {/* SCREENSHOTS */}
+        <section className="lp-screenshots" id="na-pratica">
+          <div className="lp-container">
+            <div className="lp-screenshots-header">
+              <span className="lp-section-label">Na prática</span>
+              <h2 className="lp-section-title">Veja o AnestPrime<br /><em>em ação</em></h2>
+              <p style={{color:'#94A3B8', fontSize:'1rem', lineHeight:1.7, maxWidth:500, margin:'0 auto'}}>
+                Telas reais da plataforma — do bloco ao fechamento financeiro.
+              </p>
+            </div>
+            <div className="lp-screens-grid">
+              <div className="lp-screen-item">
+                <img src="/icons/dashboard.png" alt="Dashboard financeiro AnestPrime" className="lp-screen-img" />
+                <div className="lp-screen-caption">
+                  <h3>📊 Dashboard de Produção</h3>
+                  <p>Visão completa da produção mensal com gráficos de procedimentos e valor gerado por instituição. Filtros por tipo, período e status de pagamento.</p>
+                </div>
+              </div>
+              <div className="lp-screen-item">
+                <img src="/icons/ficha.png" alt="Ficha anestésica com organograma" className="lp-screen-img" />
+                <div className="lp-screen-caption">
+                  <h3>📋 Ficha Anestésica com Organograma</h3>
+                  <p>Registro completo do ato anestésico com monitorização hemodinâmica plotada em tempo real — PA, FC, SpO₂, temperatura e fluidos.</p>
+                </div>
+              </div>
+              <div className="lp-screen-item">
+                <img src="/icons/plantoes.png" alt="Calendário de plantões" className="lp-screen-img" />
+                <div className="lp-screen-caption">
+                  <h3>🌙 Calendário de Plantões</h3>
+                  <p>Visualização mensal de todos os plantões. Lance plantões recorrentes (semanal, quinzenal, mensal) e acompanhe o status de pagamento de cada um.</p>
+                </div>
+              </div>
+              <div className="lp-screen-item">
+                <img src="/icons/scores.png" alt="Scores clínicos" className="lp-screen-img" />
+                <div className="lp-screen-caption">
+                  <h3>⚡ Scores Clínicos na Palma da Mão</h3>
+                  <p>ASA, Mallampati, Apfel, STOP-BANG, RCRI, Caprini e algoritmo de VAD interativo — calculadoras clínicas organizadas por categoria, sempre acessíveis.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -451,7 +571,7 @@ export default function LandingPage() {
           <div className="lp-container">
             <div className="lp-cta-inner">
               <h2>Pronto para <em>transformar</em><br />sua prática?</h2>
-              <p>Acesse agora mesmo. Funciona em qualquer dispositivo, em qualquer lugar — sem instalar nada.</p>
+              <p>Acesse agora. Funciona em qualquer dispositivo — instala como app no celular em segundos, sem passar pela loja.</p>
               <Link href="/auth/login" className="lp-btn-primary" style={{fontSize:'1rem', padding:'1rem 2.5rem', display:'inline-flex'}}>
                 Acessar o AnestPrime →
               </Link>
