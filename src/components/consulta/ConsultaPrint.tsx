@@ -93,7 +93,7 @@ export const ConsultaPrint = React.forwardRef<HTMLDivElement, ConsultaPrintProps
             </div>
           </div>
           <div style={{ textAlign: 'right', fontSize: 10, color: '#64748B' }}>
-            IBAD — Sistema de Ficha Anestésica
+            AnestPrime — A plataforma do Anestesista
           </div>
         </div>
 

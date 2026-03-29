@@ -162,7 +162,7 @@ export const FichaPrint = React.forwardRef<HTMLDivElement, FichaPrintProps>(
           </div>
 
           <div style={{ textAlign: 'right', fontSize: 10, color: '#64748B' }}>
-            <div>IBAD — Sistema de Ficha Anestésica</div>
+            <div>AnestPrime — A Plataforma do Anestesista</div>
             {record.anesthesia_code && (
               <div
                 style={{
