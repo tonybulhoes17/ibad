@@ -30,17 +30,17 @@ const SCORES = [
     items: [
       { href: '/app/scores/ariscat', name: 'ARISCAT', desc: 'Risco de complicações pulmonares', disabled: true },
       { href: '/app/scores/cha2ds2vasc', name: 'CHA₂DS₂-VASc', desc: 'Risco de AVC em FA', disabled: true },
-      { href: '/app/scores/has-bled', name: 'HAS-BLED', desc: 'Risco de sangramento em anticoagulação', disabled: true },
+      { href: '/app/scores/has-bled', name: 'HAS-BLED', desc: 'Risco de sangramento em anticoagulação' },
       { href: '/app/scores/frailty', name: 'Clinical Frailty Scale', desc: 'Avaliação de fragilidade clínica', disabled: true },
-      { href: '/app/scores/cockcroft', name: 'Cockcroft-Gault', desc: 'Estimativa da função renal (ClCr)', disabled: true },
+      { href: '/app/scores/cockcroft', name: 'Cockcroft-Gault', desc: 'Estimativa da função renal (ClCr)'},
     ],
   },
   {
     category: '🔵 Avançados',
     color: 'blue',
     items: [
-      { href: '/app/scores/sofa', name: 'SOFA', desc: 'Avaliação de disfunção orgânica', disabled: true },
-      { href: '/app/scores/qsofa', name: 'qSOFA', desc: 'Triagem rápida de sepse', disabled: true },
+      { href: '/app/scores/sofa', name: 'SOFA', desc: 'Avaliação de disfunção orgânica' },
+      { href: '/app/scores/qsofa', name: 'qSOFA', desc: 'Triagem rápida de sepse' },
       { href: '/app/scores/apache2', name: 'APACHE II', desc: 'Prognóstico em UTI', disabled: true },
       { href: '/app/scores/possum', name: 'POSSUM', desc: 'Risco cirúrgico e mortalidade', disabled: true },
     ],
