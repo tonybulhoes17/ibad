@@ -1,14 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { formatCurrency } from '@/lib/utils'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { subMonths, format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Users, FileText, TrendingUp, Activity, LogOut, Eye, EyeOff } from 'lucide-react'
 
-const ADMIN_EMAIL = 'tonybulhoes17@gmail.com'
 const ADMIN_PASSWORD = 'crm28551'
 
 interface UserStats {
@@ -30,11 +27,8 @@ export default function AdminPage() {
   const [passwordInput, setPasswordInput] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const [users, setUsers] = useState<UserStats[]>([])
   const [dataLoading, setDataLoading] = useState(false)
-
-  const supabase = createClient()
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -48,69 +42,13 @@ export default function AdminPage() {
 
   const fetchData = useCallback(async () => {
     setDataLoading(true)
-
-    // Busca todos os perfis
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, crm, created_at')
-      .order('created_at', { ascending: false })
-
-    if (!profiles) { setDataLoading(false); return }
-
-    // Para cada usuário busca contagens
-    const userStats: UserStats[] = await Promise.all(
-      profiles.map(async (p) => {
-        const [
-          { count: anesthesia_count },
-          { count: consultation_count },
-          { count: shift_count },
-        ] = await Promise.all([
-          supabase.from('anesthesia_records').select('*', { count: 'exact', head: true }).eq('user_id', p.id),
-          supabase.from('consultation_records').select('*', { count: 'exact', head: true }).eq('user_id', p.id),
-          supabase.from('shifts').select('*', { count: 'exact', head: true }).eq('user_id', p.id),
-        ])
-
-        // Última atividade
-        const [{ data: lastAnest }, { data: lastConsult }, { data: lastShift }] = await Promise.all([
-          supabase.from('anesthesia_records').select('created_at').eq('user_id', p.id).order('created_at', { ascending: false }).limit(1),
-          supabase.from('consultation_records').select('created_at').eq('user_id', p.id).order('created_at', { ascending: false }).limit(1),
-          supabase.from('shifts').select('created_at').eq('user_id', p.id).order('created_at', { ascending: false }).limit(1),
-        ])
-
-        const dates = [
-          lastAnest?.[0]?.created_at,
-          lastConsult?.[0]?.created_at,
-          lastShift?.[0]?.created_at,
-        ].filter(Boolean) as string[]
-
-        const last_activity = dates.length > 0 ? dates.sort().reverse()[0] : null
-
-        // Ativo = lançou algo nos últimos 30 dias
-        const thirtyDaysAgo = new Date()
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-        const is_active = last_activity ? new Date(last_activity) >= thirtyDaysAgo : false
-
-        const a = anesthesia_count ?? 0
-        const c = consultation_count ?? 0
-        const s = shift_count ?? 0
-
-        return {
-          id: p.id,
-          full_name: p.full_name,
-          email: '—', // não exposto por segurança
-          crm: p.crm ?? '—',
-          created_at: p.created_at,
-          anesthesia_count: a,
-          consultation_count: c,
-          shift_count: s,
-          total_count: a + c + s,
-          last_activity,
-          is_active,
-        }
-      })
-    )
-
-    setUsers(userStats)
+    try {
+      const res = await fetch('/api/admin')
+      const data = await res.json()
+      if (data.users) setUsers(data.users)
+    } catch (err) {
+      console.error(err)
+    }
     setDataLoading(false)
   }, [])
 
@@ -118,13 +56,11 @@ export default function AdminPage() {
     if (authed) fetchData()
   }, [authed, fetchData])
 
-  // ── Métricas gerais ──
   const totalUsers = users.length
   const activeUsers = users.filter(u => u.is_active).length
   const inactiveUsers = totalUsers - activeUsers
   const totalRecords = users.reduce((s, u) => s + u.total_count, 0)
 
-  // ── Crescimento mensal (últimos 6 meses) ──
   const growthData = Array.from({ length: 6 }, (_, i) => {
     const d = subMonths(new Date(), 5 - i)
     const start = startOfMonth(d)
@@ -135,62 +71,8 @@ export default function AdminPage() {
     return { mes: format(d, 'MMM/yy', { locale: ptBR }), novos: count }
   })
 
-  // ── LOGIN ──
-  if (!authed) {
-    return (
-      <div style={{
-        minHeight: '100vh', background: '#0B1929',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'system-ui, sans-serif', padding: '2rem'
-      }}>
-        <div style={{
-          background: '#112236', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 20, padding: '3rem', width: '100%', maxWidth: 380, textAlign: 'center'
-        }}>
-          <div style={{ fontSize: 40, marginBottom: '1rem' }}>🔐</div>
-          <h1 style={{ color: '#F8F9FA', fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-            AnestPrime Admin
-          </h1>
-          <p style={{ color: '#94A3B8', fontSize: '0.85rem', marginBottom: '2rem' }}>
-            Painel administrativo restrito
-          </p>
-          <form onSubmit={handleLogin}>
-            <div style={{ position: 'relative', marginBottom: '1rem' }}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Senha de acesso"
-                value={passwordInput}
-                onChange={e => setPasswordInput(e.target.value)}
-                style={{
-                  width: '100%', padding: '0.75rem 2.5rem 0.75rem 1rem',
-                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 10, color: '#F8F9FA', fontSize: '0.95rem', outline: 'none',
-                }}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}>
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            {error && <p style={{ color: '#F87171', fontSize: '0.82rem', marginBottom: '1rem' }}>{error}</p>}
-            <button type="submit" style={{
-              width: '100%', padding: '0.85rem', background: '#0D9488', color: 'white',
-              border: 'none', borderRadius: 10, fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer'
-            }}>
-              Entrar
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
-
-  // ── DASHBOARD ──
   const card = (icon: React.ReactNode, label: string, value: string | number, sub?: string, color = '#14B8A8') => (
-    <div style={{
-      background: '#112236', border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 16, padding: '1.5rem'
-    }}>
+    <div style={{ background: '#112236', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '1.5rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.8rem', color }}>
         {icon}
         <span style={{ fontSize: '0.78rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
@@ -200,16 +82,43 @@ export default function AdminPage() {
     </div>
   )
 
+  // ── LOGIN ──
+  if (!authed) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0B1929', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
+        <div style={{ background: '#112236', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '3rem', width: '100%', maxWidth: 380, textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: '1rem' }}>🔐</div>
+          <h1 style={{ color: '#F8F9FA', fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>AnestPrime Admin</h1>
+          <p style={{ color: '#94A3B8', fontSize: '0.85rem', marginBottom: '2rem' }}>Painel administrativo restrito</p>
+          <form onSubmit={handleLogin}>
+            <div style={{ position: 'relative', marginBottom: '1rem' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Senha de acesso"
+                value={passwordInput}
+                onChange={e => setPasswordInput(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem 2.5rem 0.75rem 1rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#F8F9FA', fontSize: '0.95rem', outline: 'none' }}
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}>
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {error && <p style={{ color: '#F87171', fontSize: '0.82rem', marginBottom: '1rem' }}>{error}</p>}
+            <button type="submit" style={{ width: '100%', padding: '0.85rem', background: '#0D9488', color: 'white', border: 'none', borderRadius: 10, fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer' }}>
+              Entrar
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  // ── DASHBOARD ──
   return (
     <div style={{ minHeight: '100vh', background: '#0B1929', color: '#F8F9FA', fontFamily: 'system-ui, sans-serif' }}>
 
-      {/* Header */}
-      <div style={{
-        padding: '1.2rem 2rem', background: '#0B1929',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(12px)'
-      }}>
+      <div style={{ padding: '1.2rem 2rem', background: '#0B1929', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(12px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
           <img src="/icons/icon-192.png" alt="AnestPrime" style={{ width: 32, height: 32, borderRadius: 8 }} />
           <div>
@@ -217,7 +126,7 @@ export default function AdminPage() {
             <p style={{ fontSize: '0.72rem', color: '#94A3B8' }}>Painel de crescimento</p>
           </div>
         </div>
-        <button onClick={() => setAuthed(false)}
+        <button onClick={() => { setAuthed(false); setPasswordInput('') }}
           style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8', padding: '0.4rem 0.8rem', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem' }}>
           <LogOut size={14} /> Sair
         </button>
@@ -226,18 +135,21 @@ export default function AdminPage() {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem' }}>
 
         {dataLoading ? (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#94A3B8' }}>Carregando dados...</div>
+          <div style={{ textAlign: 'center', padding: '4rem', color: '#94A3B8' }}>
+            <p style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⏳</p>
+            Carregando dados da plataforma...
+          </div>
         ) : (
           <>
-            {/* Cards métricas */}
+            {/* Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-              {card(<Users size={16} />, 'Total de Usuários', totalUsers, `Meta: 20 usuários regulares`)}
+              {card(<Users size={16} />, 'Total de Usuários', totalUsers, 'Meta: 20 usuários regulares')}
               {card(<Activity size={16} />, 'Usuários Ativos', activeUsers, 'Ativos nos últimos 30 dias', '#10B981')}
               {card(<Users size={16} />, 'Usuários Inativos', inactiveUsers, 'Sem atividade há +30 dias', '#F59E0B')}
               {card(<FileText size={16} />, 'Total de Registros', totalRecords, 'Fichas + consultas + plantões', '#818CF8')}
             </div>
 
-            {/* Barra de progresso meta */}
+            {/* Barra de progresso */}
             <div style={{ background: '#112236', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '1.5rem', marginBottom: '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
                 <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Progresso até monetização</span>
@@ -247,18 +159,18 @@ export default function AdminPage() {
                 <div style={{
                   height: '100%', borderRadius: 999,
                   width: `${Math.min((activeUsers / 20) * 100, 100)}%`,
-                  background: activeUsers >= 20
-                    ? 'linear-gradient(to right, #10B981, #14B8A8)'
-                    : 'linear-gradient(to right, #0D9488, #14B8A8)',
+                  background: 'linear-gradient(to right, #0D9488, #14B8A8)',
                   transition: 'width 0.5s ease'
                 }} />
               </div>
               <p style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: '0.5rem' }}>
-                {20 - activeUsers > 0 ? `Faltam ${20 - activeUsers} usuários ativos para iniciar cobrança` : '🎉 Meta atingida! Hora de monetizar.'}
+                {activeUsers >= 20
+                  ? '🎉 Meta atingida! Hora de monetizar.'
+                  : `Faltam ${20 - activeUsers} usuários ativos para iniciar cobrança`}
               </p>
             </div>
 
-            {/* Gráfico crescimento */}
+            {/* Gráfico */}
             <div style={{ background: '#112236', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '1.5rem', marginBottom: '2rem' }}>
               <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <TrendingUp size={16} color="#14B8A8" /> Novos usuários — Últimos 6 meses
@@ -268,23 +180,23 @@ export default function AdminPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: '#1A3350', border: 'none', borderRadius: 8, fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: '#1A3350', border: 'none', borderRadius: 8, fontSize: 12, color: '#F8F9FA' }} />
                   <Bar dataKey="novos" name="Novos usuários" fill="#0D9488" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Tabela de usuários */}
+            {/* Tabela */}
             <div style={{ background: '#112236', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden' }}>
               <div style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>Usuários cadastrados ({totalUsers})</p>
-                <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Ordenado por cadastro mais recente</span>
+                <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Por cadastro mais recente</span>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.83rem' }}>
                   <thead>
                     <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                      {['Nome', 'CRM', 'Cadastro', 'Status', 'Anest.', 'Pré-Anest.', 'Plantões', 'Total', 'Última atividade'].map(h => (
+                      {['Nome', 'E-mail', 'CRM', 'Cadastro', 'Status', 'Anest.', 'Pré', 'Plant.', 'Total', 'Última atividade'].map(h => (
                         <th key={h} style={{ textAlign: 'left', padding: '0.75rem 1rem', color: '#94A3B8', fontWeight: 600, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -292,7 +204,8 @@ export default function AdminPage() {
                   <tbody>
                     {users.map((u, i) => (
                       <tr key={u.id} style={{ borderTop: '1px solid rgba(255,255,255,0.04)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
-                        <td style={{ padding: '0.85rem 1rem', fontWeight: 500, color: '#F8F9FA' }}>{u.full_name}</td>
+                        <td style={{ padding: '0.85rem 1rem', fontWeight: 500, color: '#F8F9FA', whiteSpace: 'nowrap' }}>{u.full_name}</td>
+                        <td style={{ padding: '0.85rem 1rem', color: '#94A3B8', fontSize: '0.78rem' }}>{u.email}</td>
                         <td style={{ padding: '0.85rem 1rem', color: '#94A3B8', fontFamily: 'monospace' }}>{u.crm}</td>
                         <td style={{ padding: '0.85rem 1rem', color: '#94A3B8', whiteSpace: 'nowrap' }}>
                           {new Date(u.created_at).toLocaleDateString('pt-BR')}
@@ -321,7 +234,6 @@ export default function AdminPage() {
                 </table>
               </div>
             </div>
-
           </>
         )}
       </div>
