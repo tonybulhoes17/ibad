@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
+import PWAInstallBanner from '@/components/PWAInstallBanner'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = createServerClient()
@@ -13,10 +14,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.from('terms_of_use').select('version').order('created_at', { ascending: false }).limit(1).single(),
   ])
 
-  // Se há um termo vigente e o usuário não aceitou a versão atual → redireciona
   if (currentTerm && profile?.terms_accepted_version !== currentTerm.version) {
     redirect('/termos')
   }
 
-  return <AppShell profile={profile}>{children}</AppShell>
+  return (
+    <AppShell profile={profile}>
+      <PWAInstallBanner />
+      {children}
+    </AppShell>
+  )
 }
