@@ -5,6 +5,13 @@ import { Activity, ChevronRight } from 'lucide-react'
 
 const SCORES = [
   {
+    category: '⚡ Emergência',
+    color: 'red',
+    items: [
+      { href: '/app/scores/vad', name: 'Algoritmo VAD', desc: 'Via aérea difícil — DAS 2015 e ASA 2022 interativos' },
+    ],
+  },
+  {
     category: '🟢 Essenciais',
     color: 'emerald',
     items: [
