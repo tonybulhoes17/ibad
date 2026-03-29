@@ -41,11 +41,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Protege rotas autenticadas e libera explicitamente arquivos estáticos,
-     * manifest.json e OneSignalSDKWorker.js (CRÍTICO para PWA funcionar)
-     */
-    '/((?!_next/static|_next/image|favicon\\.ico|icons|.*\\.png$|.*\\.jpg$|.*\\.svg$|.*\\.json$|.*\\.js$|.*\\.ico$|OneSignalSDKWorker\\.js).*)',
+    // Libera: arquivos estáticos, PWA, /admin, /landingpage
+    '/((?!_next/static|_next/image|favicon\\.ico|icons|.*\\.png$|.*\\.jpg$|.*\\.svg$|.*\\.json$|.*\\.js$|.*\\.ico$|OneSignalSDKWorker\\.js|admin|landingpage).*)',
     '/app/:path*',
     '/grupo/:path*',
     '/termos',
